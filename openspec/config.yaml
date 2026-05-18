@@ -1,4 +1,5 @@
-schema: spec-driven
+# schema: spec-driven
+schema: superpowers-bridge
 
 context: |
   AI-powered math tutoring application, bilingual (Vietnamese / English).

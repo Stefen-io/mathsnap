@@ -1,0 +1,25 @@
+{
+  "files.encoding": "utf8",
+  "files.autoSave": "onFocusChange",
+  "terminal.integrated.suggest.runOnEnter": "exactMatch",
+  "terminal.integrated.suggest.enabled": true,
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "editor.rulers": [
+    {
+      "column": 100,
+      "color": "#00ff00"
+    },
+    {
+      "column": 120,
+      "color": "#0000ff"
+    }
+  ],
+  "files.associations": {
+    "*.json": "jsonc"
+  }
+}

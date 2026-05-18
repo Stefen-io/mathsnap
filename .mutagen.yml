@@ -1,0 +1,22 @@
+# mutagen sync create -c .mutagen.yml --name=mathsnap . webserver:~/workspace/projects/mathsnap
+sync:
+  defaults:
+    mode: "two-way-resolved"
+    ignore:
+      vcs: true
+      paths:
+        - "__pycache__"
+        - ".DS_Store"
+        - ".idea"
+        - ".pnpm-store"
+        - "*.tmp"
+        - ".tox"
+        - ".venv"
+        - "bin"
+        - "build"
+        - "dist"
+        - "logs"
+        - "node_modules"
+        - "obj"
+    symlink:
+      mode: "ignore"

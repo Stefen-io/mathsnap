@@ -13,3 +13,10 @@ ln -sf ./CLAUDE.md ./AGENTS.md	# Link the CLAUDE.md file to the AGENTS.md file
 - `ln -sf`: Overwrite a symbolic link to the source file in the target file
 - `./CLAUDE.md`: The source file
 - `./AGENTS.md`: The target file
+
+```bash
+npx skills add shadcn/ui	# Add shadcn/ui plugin to the project
+```
+
+- `shadcn/ui`: GitHub repository URL
+- `npx skills add`: Install the plugin

@@ -1,0 +1,11 @@
+schema: spec-driven
+
+context: |
+  AI-powered math tutoring application, bilingual (Vietnamese / English).
+  Tech Stack:
+    Backend: FastAPI, PostgreSQL
+    Frontend: Next.js, Tailwind CSS
+    Infra: Docker Compose
+  Conventions:
+    - Commit messages: Follow Conventional Commits as defined in `.copilot-commit-message-instructions.md`
+    - API: RESTful and versioned, with Swagger documentation

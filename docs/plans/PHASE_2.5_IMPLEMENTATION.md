@@ -396,13 +396,13 @@ Nếu cắt vào hard floor → MVP không demo được → fail DoD → fail m
 
 ## 10. Appendix
 
-### 10.1 Tổng giờ Phase 2.5
+### 10.1 Tổng giờ ước lượng
 
-| Sprint   | Days   | Tổng giờ ước lượng |
-| -------- | ------ | ------------------ |
-| Sprint 1 | D1-D4  | ~24h               |
-| Sprint 2 | D5-D8  | ~24h               |
-| **Tổng** | 8 ngày | **~48h**           |
+| Sprint    | Days   | Tổng giờ ước lượng |
+| --------- | ------ | ------------------ |
+| Sprint 1  | D1-D4  | ~24h               |
+| Sprint 2  | D5-D8  | ~24h               |
+| **Total** | 8 days | **~48h**           |
 
 ### 10.2 Phân bổ workstream
 
@@ -412,7 +412,21 @@ Nếu cắt vào hard floor → MVP không demo được → fail DoD → fail m
 | Frontend (D4-D7)             | ~24h          | 50% |
 | Polish + Deploy + Audit (D8) | ~6h           | 12% |
 
-### 10.3 Lịch sử sửa đổi
+### 10.3 OpenSpec Changes — Feature-level breakdown
+
+> **Mục đích:** Bảng tổng quan các OpenSpec change cho Phase 2.5, nhóm theo domain và dependency. Đây là **planning artifact** — dùng để xác định thứ tự thực thi và scope. Nội dung chi tiết từng change được viết just-in-time trong phiên Explore/Propose tương ứng, không pre-written ở đây.
+
+| #   | Change name                    | Nội dung cover                                                                                                                                                                                                                                  | Deps         | Size | Category           | Priority |
+| --- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ---- | ------------------ | -------- |
+| G1  | `backend-core-api`             | Lock Pydantic schemas + TS types làm contract giữa FE/BE; implement `POST /api/ocr` (pix2tex) và `POST /api/solve` (LCEL chain → OpenAI → Supabase INSERT). Tạo fixtures để FE dev song song không cần backend ready.                           | —            | L    | Backend            | P0       |
+| G2  | `backend-production-hardening` | Implement rate limiting 2 lớp (daily quota SQL + burst sliding window in-memory); chuẩn hóa 10 error codes theo SD §4.8; thêm input validation (deviceId UUID, MIME check, LaTeX sanitize) và structured logging.                               | G1           | L    | Backend            | P0       |
+| G3  | `frontend-camera-flow`         | Xây S-01 Home + Bottom Nav, S-02 Camera (`getUserMedia`), S-03 Crop (`react-easy-crop`), S-04 OCR Loading skeleton, KaTeX lazy-load component. Có thể chạy song song với G1/G2 bằng fixtures.                                                   | G1           | M    | Frontend           | P0       |
+| G4  | `frontend-solve-flow`          | Implement `useDeviceId` + typed API client với `X-Device-ID` header; xây S-05 Formula Preview (KaTeX realtime), S-06 Solution Loading, S-07 Solution Detail với Progressive Disclosure 3-state per step. Manual E2E test trên mobile thật.      | G1 + G2 + G3 | L    | Frontend           | P0       |
+| G5  | `frontend-error-polish`        | Implement S-10 Error State với 3 variant phân biệt (OCR fail / LLM fail / rate limit daily vs burst). Bổ sung S-12 Onboarding one-time overlay, S-14 Problem Selector, và mobile responsive QA (iOS Safari + Android Chrome) nếu T2 chưa fired. | G2 + G4      | M    | Frontend           | P0 + P2  |
+| G6  | `history-bookmark`             | Backend: 4 endpoint `GET/DELETE/PATCH /api/history*` scope theo deviceId. Frontend: S-08 History + swipe-to-delete, S-09 Bookmark, S-11 Manual LaTeX, S-13 Settings + bilingual toggle, FR-1b Upload từ file picker.                            | G2 + G4      | L    | Backend + Frontend | P1       |
+| G7  | `audit-and-release`            | Lighthouse 2-pass (baseline → optimize code split/lazy load → verify ≥ 80/90); security audit xác nhận API key không lộ trong bundle; smoke test happy path + 3 error scenarios; tag `v1.0-mvp` + update README.                                | G5           | M    | Polish & Release   | P0       |
+
+### 10.4 Lịch sử sửa đổi
 
 | Phiên bản | Ngày       | Tác giả            | Nội dung                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | --------- | ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |

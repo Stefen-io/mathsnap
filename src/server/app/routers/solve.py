@@ -39,7 +39,7 @@ async def solve(
             detail=ErrorResponse(
                 code=LLM_INVALID_RESPONSE,
                 message="LLM returned an invalid response.",
-                retryable=False,
+                retryable=True,
             ).model_dump(),
         )
     except Exception as e:

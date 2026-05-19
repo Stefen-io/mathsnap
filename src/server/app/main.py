@@ -1,8 +1,12 @@
 import os
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pix2tex.cli import LatexOCR
+
+from app.schemas.errors import ErrorResponse, INVALID_REQUEST
 
 from app.routers import ocr as ocr_router
 from app.routers import solve as solve_router
@@ -37,6 +41,18 @@ app.add_middleware(
     allow_methods=["GET", "POST", "PATCH", "DELETE"],
     allow_headers=["Content-Type", "X-Device-ID"],
 )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=400,
+        content=ErrorResponse(
+            code=INVALID_REQUEST,
+            message="Invalid request parameters.",
+            retryable=False,
+        ).model_dump(),
+    )
 
 
 @app.get(

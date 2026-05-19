@@ -80,7 +80,11 @@ async def solve(
     async def _persist() -> None:
         try:
             client = await db.get_supabase()
-            await db.insert_history_item(client, device_id, body.latex, solution, body.language)
+            await db.insert_history_item(
+                client, device_id, body.latex, solution, body.language,
+                item_id=item.id,
+                created_at=item.created_at,
+            )
         except Exception:
             pass  # fire-and-forget: DB failure does not affect response
 

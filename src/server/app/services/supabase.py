@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 from uuid import UUID
 from supabase._async.client import AsyncClient, create_client
 
@@ -19,13 +20,17 @@ async def insert_history_item(
     latex: str,
     solution: Solution,
     language: str,
+    item_id: UUID,
+    created_at: datetime,
 ) -> HistoryItem:
     row = {
+        "id": str(item_id),
         "device_id": str(device_id),
         "latex": latex,
         "solution_steps": [step.model_dump() for step in solution.steps],
         "language": language,
         "is_bookmarked": False,
+        "created_at": created_at.isoformat(),
     }
     response = await client.table("history_items").insert(row).execute()
     data = response.data[0]

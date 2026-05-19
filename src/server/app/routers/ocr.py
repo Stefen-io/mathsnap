@@ -1,4 +1,7 @@
+import io
 from uuid import UUID
+
+from PIL import Image
 from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from app.dependencies import validate_device_id
@@ -40,8 +43,6 @@ async def ocr(
 
     ocr_model = request.app.state.ocr_model
     try:
-        from PIL import Image
-        import io
         pil_image = Image.open(io.BytesIO(contents))
         latex_result = ocr_model(pil_image)
     except Exception:

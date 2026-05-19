@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
@@ -15,6 +16,9 @@ from app.schemas.errors import (
 from app.schemas.history import HistoryItem, SolveRequest
 from app.services import solver as solver_service
 from app.services import supabase as db
+from app.services.solver import LANGUAGE_NAMES
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -27,7 +31,7 @@ async def solve(
 ) -> dict:
     try:
         solution = await solver_service.solver_chain.ainvoke(
-            {"latex": body.latex, "language": body.language}
+            {"latex": body.latex, "language": LANGUAGE_NAMES.get(body.language, body.language)}
         )
     except OutputParserException:
         raise HTTPException(
@@ -85,8 +89,8 @@ async def solve(
                 item_id=item.id,
                 created_at=item.created_at,
             )
-        except Exception:
-            pass  # fire-and-forget: DB failure does not affect response
+        except Exception as e:
+            logger.warning("Background DB persist failed: %s", e)
 
     background_tasks.add_task(_persist)
 

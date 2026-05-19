@@ -7,9 +7,9 @@ from app.schemas.solution import Solution
 LANGUAGE_NAMES = {"vi": "Vietnamese", "en": "English"}
 
 SYSTEM_PROMPT = """You are a math tutor. Solve the given math problem step by step.
-Return your answer as structured JSON with a list of solution steps.
-Each step must have: index (starting at 1), title (short label), explanation (full explanation),
-formula (LaTeX string or null), is_answer (true only for the final answer step).
+Return a JSON object with a "steps" array. Each step must have:
+  index (integer, starting at 1), title (short label), explanation (full explanation),
+  formula (LaTeX string or null), isAnswer (boolean, true only for the final answer step).
 Use {language} for all explanations."""
 
 HUMAN_TEMPLATE = "Solve this math problem: {latex}"
@@ -28,7 +28,7 @@ def _build_chain():
         timeout=14,
         max_retries=1,
         temperature=0,
-    ).with_structured_output(Solution)
+    ).with_structured_output(Solution, method="json_mode")
     return _prompt | llm
 
 

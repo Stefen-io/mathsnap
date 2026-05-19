@@ -1,8 +1,7 @@
-import asyncio
 from datetime import datetime, timezone
 from uuid import UUID, uuid4
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from langchain_core.exceptions import OutputParserException
 
 from app.dependencies import validate_device_id
@@ -24,7 +23,6 @@ router = APIRouter()
 async def solve(
     body: SolveRequest,
     background_tasks: BackgroundTasks,
-    request: Request,
     device_id: UUID = Depends(validate_device_id),
 ) -> dict:
     try:

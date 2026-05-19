@@ -3,7 +3,7 @@ import type { HistoryItem } from '@/types/history';
 export const MOCK_HISTORY: HistoryItem[] = [
   {
     id: 'a1b2c3d4-e5f6-4abc-8def-000000000001',
-    deviceId: 'device-0000-0000-0000-000000000001',
+    deviceId: '00000000-0000-4000-8000-000000000001',
     latex: '2x + 3 = 7',
     language: 'vi',
     createdAt: '2026-05-01T08:00:00.000Z',
@@ -16,7 +16,7 @@ export const MOCK_HISTORY: HistoryItem[] = [
   },
   {
     id: 'a1b2c3d4-e5f6-4abc-8def-000000000002',
-    deviceId: 'device-0000-0000-0000-000000000001',
+    deviceId: '00000000-0000-4000-8000-000000000001',
     latex: 'x^2 - 5x + 6 = 0',
     language: 'vi',
     createdAt: '2026-05-02T09:30:00.000Z',
@@ -31,7 +31,7 @@ export const MOCK_HISTORY: HistoryItem[] = [
   },
   {
     id: 'a1b2c3d4-e5f6-4abc-8def-000000000003',
-    deviceId: 'device-0000-0000-0000-000000000001',
+    deviceId: '00000000-0000-4000-8000-000000000001',
     latex: '\\int_0^1 x^2 \\, dx',
     language: 'vi',
     createdAt: '2026-05-03T14:00:00.000Z',
@@ -43,7 +43,7 @@ export const MOCK_HISTORY: HistoryItem[] = [
   },
   {
     id: 'a1b2c3d4-e5f6-4abc-8def-000000000004',
-    deviceId: 'device-0000-0000-0000-000000000001',
+    deviceId: '00000000-0000-4000-8000-000000000001',
     latex: '3x - 2 = 10',
     language: 'en',
     createdAt: '2026-05-04T11:00:00.000Z',
@@ -55,7 +55,7 @@ export const MOCK_HISTORY: HistoryItem[] = [
   },
   {
     id: 'a1b2c3d4-e5f6-4abc-8def-000000000005',
-    deviceId: 'device-0000-0000-0000-000000000001',
+    deviceId: '00000000-0000-4000-8000-000000000001',
     latex: '\\frac{d}{dx}(x^3)',
     language: 'vi',
     createdAt: '2026-05-05T16:45:00.000Z',

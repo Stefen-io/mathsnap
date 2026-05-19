@@ -44,14 +44,27 @@ async def ocr(
     ocr_model = request.app.state.ocr_model
     try:
         pil_image = Image.open(io.BytesIO(contents))
-        latex_result = ocr_model(pil_image)
     except Exception:
         raise HTTPException(
-            status_code=500,
+            status_code=400,
             detail=ErrorResponse(
-                code=INTERNAL_ERROR,
-                message="OCR processing failed unexpectedly.",
-                retryable=True,
+                code=INVALID_IMAGE,
+                message="Could not decode image file.",
+                retryable=False,
+            ).model_dump(),
+        )
+
+    try:
+        latex_result = ocr_model(pil_image)
+    except Exception:
+        # pix2tex throws for images it cannot process (e.g. blank/uniform images)
+        # which semantically means "no formula found", not a server fault
+        raise HTTPException(
+            status_code=422,
+            detail=ErrorResponse(
+                code=OCR_NO_FORMULA,
+                message="No mathematical formula found in the image.",
+                retryable=False,
             ).model_dump(),
         )
 

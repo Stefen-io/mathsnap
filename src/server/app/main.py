@@ -4,13 +4,14 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pix2tex.cli import LatexOCR
 
-ocr_model = None
+from app.routers import ocr as ocr_router
+from app.routers import solve as solve_router
+from app.routers import history as history_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global ocr_model
-    ocr_model = LatexOCR()
+    app.state.ocr_model = LatexOCR()
     yield
 
 
@@ -48,6 +49,11 @@ app.add_middleware(
     tags=["Infrastructure"],
 )
 async def health():
-    if ocr_model is None:
+    if not hasattr(app.state, "ocr_model") or app.state.ocr_model is None:
         raise HTTPException(status_code=503, detail="model loading")
     return {"status": "ok"}
+
+
+app.include_router(ocr_router.router, prefix="/api")
+app.include_router(solve_router.router, prefix="/api")
+app.include_router(history_router.router, prefix="/api")

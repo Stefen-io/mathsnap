@@ -3,7 +3,7 @@ from uuid import UUID
 from supabase._async.client import AsyncClient, create_client
 
 from app.schemas.history import HistoryItem, HistoryListResponse
-from app.schemas.solution import Solution
+from app.schemas.solution import Solution, SolutionStep
 
 
 async def get_supabase() -> AsyncClient:
@@ -58,8 +58,8 @@ async def get_history_item(
     item_id: UUID,
     device_id: UUID,
 ) -> HistoryItem | None:
-    response = (
-        await client.table("history_items")
+    response = await (
+        client.table("history_items")
         .select("*")
         .eq("id", str(item_id))
         .eq("device_id", str(device_id))
@@ -106,7 +106,6 @@ async def toggle_bookmark(
 
 
 def _row_to_item(row: dict) -> HistoryItem:
-    from app.schemas.solution import SolutionStep
     return HistoryItem(
         id=row["id"],
         device_id=row["device_id"],

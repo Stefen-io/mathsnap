@@ -3,7 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies import validate_device_id
 from app.schemas.errors import ErrorResponse, HISTORY_NOT_FOUND
-from app.schemas.history import HistoryListResponse
 from app.services import supabase as db
 
 router = APIRouter()

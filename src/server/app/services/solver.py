@@ -19,11 +19,28 @@ _prompt = ChatPromptTemplate.from_messages([
     ("human", HUMAN_TEMPLATE),
 ])
 
-_llm = ChatOpenAI(
-    model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-    timeout=14,
-    max_retries=1,
-    temperature=0,
-).with_structured_output(Solution)
+_solver_chain = None
 
-solver_chain = _prompt | _llm
+
+def _build_chain():
+    llm = ChatOpenAI(
+        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
+        timeout=14,
+        max_retries=1,
+        temperature=0,
+    ).with_structured_output(Solution)
+    return _prompt | llm
+
+
+class _LazyChain:
+    """Defers ChatOpenAI construction until the first ainvoke call so the
+    module can be imported even when OPENAI_API_KEY is not yet in the env."""
+
+    async def ainvoke(self, *args, **kwargs):
+        global _solver_chain
+        if _solver_chain is None:
+            _solver_chain = _build_chain()
+        return await _solver_chain.ainvoke(*args, **kwargs)
+
+
+solver_chain = _LazyChain()

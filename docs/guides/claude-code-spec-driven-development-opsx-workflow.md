@@ -237,21 +237,18 @@ Trước khi tạo bất kỳ prompt nào cho Claude Code, Cowork phải đọc 
 Tôi sẽ thực hiện change `[tên-change]` theo bộ khung OpenSpec.
 
 **Bước 1 — ĐỌC, không được bỏ qua:**
-Workflow OpenSpec gồm 5 bước theo thứ tự cố định:
 
-  explore → propose → apply → verify → archive
+[OpenSpec Workflow Documentation](https://github.com/Fission-AI/OpenSpec/blob/main/docs/workflows.md)
 
 Dùng Read tool đọc lần lượt theo đúng thứ tự này:
-1. **/commands/opsx/explore.md
-2. **/commands/opsx/propose.md
-3. **/commands/opsx/apply.md
-4. **/commands/opsx/verify.md
-5. **/commands/opsx/archive.md
-6. docs/ROADMAP.md
+1. docs/SYSTEM_DESIGN.md
+2. docs/ROADMAP.md
+3. docs/plans/**.md
 
 KHÔNG tạo bất kỳ prompt nào cho đến khi hoàn tất bước này.
 
 **Bước 2 — XÁC NHẬN hiểu biết (bắt buộc trước khi tiếp tục):**
+
 Sau khi đọc xong, trả lời 3 câu hỏi sau:
 1. Change `[tên-change]` thuộc task nào trong ROADMAP, priority gì, và dependency là gì?
 2. Mỗi lệnh opsx (explore/propose/apply/verify/archive) làm gì — tóm tắt mỗi lệnh trong 1 câu?

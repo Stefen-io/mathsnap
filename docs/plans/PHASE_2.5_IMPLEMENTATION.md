@@ -102,8 +102,8 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 | --- | -------- | ------ | ------------------- | ---------- | -------------------------------- | ---------- |
 | D1  | 11/05 CN | S1     | Foundation          | ✅ Done    | FR-9 baseline                    | —          |
 | D2  | 12/05 T2 | S1     | Backend core        | ✅ Done    | FR-2, FR-4, FR-11 (backend)      | —          |
-| D3  | 13/05 T3 | S1     | Backend hardening   | ⏳ Pending | FR-10, FR-11 đầy đủ              | ⚠️ **R-9** |
-| D4  | 14/05 T4 | S1     | Frontend Camera     | ⏳ Pending | FR-1a, FR-1d                     | S1 Goal    |
+| D3  | 13/05 T3 | S1     | Backend hardening   | ✅ Done    | FR-10, FR-11 đầy đủ              | ⚠️ **R-9** |
+| D4  | 14/05 T4 | S1     | Frontend Camera     | ✅ Done    | FR-1a, FR-1d                     | S1 Goal    |
 | D5  | 15/05 T5 | S2     | Frontend Solve flow | ⏳ Pending | FR-3, FR-5 — **Happy path E2E**  | ⚠️ Floor   |
 | D6  | 16/05 T6 | S2     | P1 features         | ⏳ Pending | FR-6, FR-7, FR-8, FR-1b, FR-1c   | —          |
 | D7  | 17/05 T7 | S2     | Error & Polish      | ⏳ Pending | FR-11 đầy đủ + edge cases        | —          |

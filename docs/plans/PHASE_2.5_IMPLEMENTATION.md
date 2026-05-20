@@ -24,7 +24,7 @@
 
 | Field                  | Value                            |
 | ---------------------- | -------------------------------- |
-| **Today**              | D1 (11/05, CN)                   |
+| **Today**              | D3 (13/05)                       |
 | **Current Sprint**     | Sprint 1 (D1-D4, 11/05–14/05)    |
 | **Phase progress**     | 0/59 tasks done (0%)             |
 | **Today progress**     | 0/8 tasks                        |
@@ -71,8 +71,8 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 
 **Pass criteria cuối Sprint 1 (EOD D4):**
 
-- [ ] Public URL frontend mở được, gọi được backend
-- [ ] Backend xử lý hết 6 endpoint với data thật (verify bằng Postman)
+- [x] Public URL frontend mở được, gọi được backend
+- [x] Backend xử lý hết 6 endpoint với data thật (verify bằng Postman)
 - [ ] Rate limit (daily + burst) chặn được khi quá ngưỡng
 - [ ] Frontend chụp được ảnh, crop được, hiện skeleton loading khi gọi API
 - [ ] deviceId được tạo và lưu trong localStorage
@@ -101,7 +101,7 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 | Day | Ngày     | Sprint | Focus               | Status     | Cumulative FR đạt được           | Checkpoint |
 | --- | -------- | ------ | ------------------- | ---------- | -------------------------------- | ---------- |
 | D1  | 11/05 CN | S1     | Foundation          | ✅ Done    | FR-9 baseline                    | —          |
-| D2  | 12/05 T2 | S1     | Backend core        | ⏳ Pending | FR-2, FR-4, FR-11 (backend)      | —          |
+| D2  | 12/05 T2 | S1     | Backend core        | ✅ Done    | FR-2, FR-4, FR-11 (backend)      | —          |
 | D3  | 13/05 T3 | S1     | Backend hardening   | ⏳ Pending | FR-10, FR-11 đầy đủ              | ⚠️ **R-9** |
 | D4  | 14/05 T4 | S1     | Frontend Camera     | ⏳ Pending | FR-1a, FR-1d                     | S1 Goal    |
 | D5  | 15/05 T5 | S2     | Frontend Solve flow | ⏳ Pending | FR-3, FR-5 — **Happy path E2E**  | ⚠️ Floor   |
@@ -129,14 +129,14 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 - [x] Deploy frontend lên Vercel (push to main) — 1h (FR-9)
 - [x] Deploy backend lên Railway, verify pix2tex load OK — 1h30 (FR-9, R-10)
 - [x] Verify end-to-end: Vercel URL → fetch Railway `/health` thành công — 30m (FR-9)
-- [ ] Transcribe Pydantic models từ SD 3.6 vào `src/server/app/models.py` + TS types từ SD 3.7 vào `src/client/types.ts` — 45m (FR-11, contract lock cho parallel work)
-- [ ] Tạo `src/client/fixtures/` với sample data matching contracts (Solution, HistoryItem[], SolutionStep[]) — 30m (FE parallel enabler)
+- [x] Transcribe Pydantic models từ SD 3.6 vào `src/server/app/models.py` + TS types từ SD 3.7 vào `src/client/types.ts` — 45m (FR-11, contract lock cho parallel work)
+- [x] Tạo `src/client/fixtures/` với sample data matching contracts (Solution, HistoryItem[], SolutionStep[]) — 30m (FE parallel enabler)
 
 **DoD D1:**
 
 - [x] Public URL của frontend mở được
 - [x] Backend `/health` response 200 từ frontend (CORS pass)
-- [ ] Contracts transcribed + fixtures created — FE có thể bắt đầu render mà không cần BE
+- [x] Contracts transcribed + fixtures created — FE có thể bắt đầu render mà không cần BE
 
 **Session notes:**
 
@@ -150,22 +150,22 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 
 **Tasks:**
 
-- [ ] Implement Pydantic schemas (Solution, SolutionStep, HistoryItem) — 30m (SYSTEM_DESIGN 3.6)
-- [ ] Implement `POST /api/ocr` với pix2tex.predict() — 1h (FR-2)
-- [ ] Implement LCEL chain (ChatPromptTemplate + ChatOpenAI + structured output) — 1h (FR-4, SD 7.3)
-- [ ] Implement `POST /api/solve` với LCEL invoke + Supabase INSERT — 1h30 (FR-4, FR-11)
-- [ ] Implement `GET /api/history?page=&limit=&bookmarked=` + scope theo deviceId — 45m (FR-6, FR-11)
-- [ ] Implement `GET /api/history/{id}` + `DELETE /api/history/{id}` — 30m (FR-6, FR-11)
-- [ ] Implement `PATCH /api/history/{id}/bookmark` — 30m (FR-7)
-- [ ] Test toàn bộ endpoint bằng Postman / curl — 30m
+- [x] Implement Pydantic schemas (Solution, SolutionStep, HistoryItem) — 30m (SYSTEM_DESIGN 3.6)
+- [x] Implement `POST /api/ocr` với pix2tex.predict() — 1h (FR-2)
+- [x] Implement LCEL chain (ChatPromptTemplate + ChatOpenAI + structured output) — 1h (FR-4, SD 7.3)
+- [x] Implement `POST /api/solve` với LCEL invoke + Supabase INSERT — 1h30 (FR-4, FR-11)
+- [x] Implement `GET /api/history?page=&limit=&bookmarked=` + scope theo deviceId — 45m (FR-6, FR-11)
+- [x] Implement `GET /api/history/{id}` + `DELETE /api/history/{id}` — 30m (FR-6, FR-11)
+- [x] Implement `PATCH /api/history/{id}/bookmark` — 30m (FR-7)
+- [x] Test toàn bộ endpoint bằng Postman / curl — 30m
 
 **DoD D2:**
 
-- [ ] Tất cả 6 endpoint trả response đúng schema khi test bằng Postman với data thật
+- [x] Tất cả 6 endpoint trả response đúng schema khi test bằng Postman với data thật
 
 **Session notes:**
 
-- _(empty)_
+- _[2026-05-12]_ Change #3 `implement-backend-core`: archived. Pydantic models transcribed từ SD 3.6 vào `src/server/app/models.py` + TS types từ SD 3.7 vào `src/client/types.ts` — 45m (FR-11, contract lock cho parallel work). `src/client/fixtures/` tạo với sample data matching contracts (Solution, HistoryItem[], SolutionStep[]) — 30m (FE parallel enabler). Contracts transcribed + fixtures created — FE có thể bắt đầu render mà không cần BE.
 
 ### 4.3 D3 — 13/05 (T3) — Backend Hardening (~6h)
 

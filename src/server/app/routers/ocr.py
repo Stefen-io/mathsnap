@@ -57,6 +57,8 @@ async def ocr(
         )
 
     client = await db.get_supabase()
+    # Daily limit uses solve history as proxy (D2: OCR doesn't write to history_items,
+    # so count(solve) ≈ count(OCR) at prototype scale. See design.md D2.)
     daily = await rate_limit.count_daily(client, device_id)
     if daily >= rate_limit.DAILY_OCR_LIMIT:
         logger.warning("rate_limited device=%s... type=daily endpoint=ocr", str(device_id)[:8])

@@ -7,6 +7,9 @@ from uuid import UUID
 
 from supabase._async.client import AsyncClient
 
+# NOTE: _burst is in-memory — assumes single uvicorn worker.
+# For multi-worker deployments, replace with Redis sliding window.
+
 DAILY_SOLVE_LIMIT = int(os.getenv("DAILY_SOLVE_LIMIT", "20"))
 DAILY_OCR_LIMIT   = int(os.getenv("DAILY_OCR_LIMIT",   "20"))
 BURST_LIMIT       = int(os.getenv("BURST_LIMIT_PER_MINUTE", "5"))
@@ -29,7 +32,7 @@ def check_burst(device_id: str) -> bool:
 
 async def count_daily(client: AsyncClient, device_id: UUID) -> int:
     """Return number of history_items rows for device today (UTC)."""
-    today    = datetime.now(timezone.utc).date()
+    today    = datetime.now(timezone.utc).date()  # UTC boundary — matches Supabase default
     tomorrow = today + timedelta(days=1)
     response = await (
         client.table("history_items")

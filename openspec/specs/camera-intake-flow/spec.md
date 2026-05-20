@@ -8,19 +8,30 @@ Defines the end-to-end camera capture flow: a React context for sharing image bl
 
 ### Requirement: CaptureContext holds image state between routes
 
-The system SHALL provide `contexts/CaptureContext.tsx` exporting `CaptureProvider` and `useCaptureContext`. The context SHALL hold `capturedBlob: Blob | null` and `croppedBlob: Blob | null`, plus setter functions `setCapturedBlob`, `setCroppedBlob`, and a `reset()` function. Calling `useCaptureContext()` outside of `CaptureProvider` MUST throw an error with a descriptive message.
+The system SHALL provide `contexts/CaptureContext.tsx` exporting `CaptureProvider`
+and `useCaptureContext`. The context SHALL hold `capturedBlob: Blob | null`,
+`croppedBlob: Blob | null`, `ocrLatex: string | null`, and
+`solveResult: HistoryItem | null`, plus setter functions `setCapturedBlob`,
+`setCroppedBlob`, `setOcrLatex`, `setSolveResult`, and a `reset()` function.
+Calling `reset()` MUST set all four state values to `null`. Calling
+`useCaptureContext()` outside of `CaptureProvider` MUST throw an error with a
+descriptive message.
 
 #### Scenario: Initial context state is null
 - **WHEN** `CaptureProvider` is mounted without any prior state
-- **THEN** `capturedBlob` and `croppedBlob` are both `null`
+- **THEN** `capturedBlob`, `croppedBlob`, `ocrLatex`, and `solveResult` are all `null`
 
 #### Scenario: setCapturedBlob updates state
 - **WHEN** `setCapturedBlob(blob)` is called with a Blob
 - **THEN** `capturedBlob` returns that Blob on the next render
 
-#### Scenario: reset clears both blobs
-- **WHEN** `reset()` is called after both blobs have been set
-- **THEN** `capturedBlob` and `croppedBlob` are both `null`
+#### Scenario: reset clears all four fields
+- **WHEN** `reset()` is called after all four state values have been set
+- **THEN** `capturedBlob`, `croppedBlob`, `ocrLatex`, and `solveResult` are all `null`
+
+#### Scenario: setOcrLatex updates ocrLatex
+- **WHEN** `setOcrLatex("x^2 + 1")` is called
+- **THEN** `ocrLatex` returns `"x^2 + 1"` on the next render
 
 #### Scenario: useCaptureContext throws outside provider
 - **WHEN** `useCaptureContext()` is called in a component not wrapped by `CaptureProvider`
@@ -100,11 +111,11 @@ The Crop screen SHALL display a "Confirm" button and a "Cancel" button. Tapping 
 
 ### Requirement: OCR screen renders a loading skeleton without API calls
 
-The system SHALL render `app/(main)/ocr/page.tsx` at `/ocr`. It MUST display a pulsing skeleton UI representing the eventual solution layout (formula area + step list area). It MUST NOT make any network requests. If `croppedBlob` is `null` on mount, the page MUST redirect to `/camera`.
-
-#### Scenario: OCR screen renders skeleton elements
-- **WHEN** `/ocr` is navigated to with a non-null `croppedBlob`
-- **THEN** skeleton placeholder elements are visible and no fetch is called
+> **Superseded by `formula-preview-edit` capability spec.** The OCR screen
+> `app/(main)/ocr/page.tsx` MUST be rewritten to call `POST /api/ocr`. The
+> skeleton-only, no-network-request behaviour described in this requirement NO
+> LONGER APPLIES. The guard on `croppedBlob === null` (redirect to `/camera`)
+> SHALL be preserved.
 
 #### Scenario: Null croppedBlob redirects to camera
 - **WHEN** `/ocr` is navigated to with `croppedBlob === null`

@@ -262,6 +262,7 @@ Dừng lại và đợi tôi dán output của Explore trước khi sang bước
 **Tóm tắt trước khi tạo prompt:**
 
 > Nếu Cowork chỉ đọc opsx rồi tạo prompt ngay, có hai rủi ro thường gặp:
+>
 > - **Thiếu context ROADMAP** — prompt explore không có task, priority, acceptance criteria → Claude Code explore không biết focus vào đâu
 > - **Thiếu gợi ý file liên quan** — prompt explore bỏ trống phần `Please read these files` → Claude Code phải tự tìm, dễ bỏ sót file quan trọng
 >
@@ -313,11 +314,11 @@ Hãy:
 
 Explore thường hỏi 2–3 câu hỏi trước khi propose. Trả lời theo 3 tiêu chí:
 
-| Tiêu chí | YES — làm ngay | NO — để change riêng |
-|----------|---------------|----------------------|
-| **Scope** | Nhỏ, liên quan trực tiếp | Lớn hoặc có thể tách độc lập |
-| **Architecture** | Nhất quán với patterns đã có | Cần refactor lớn |
-| **Bug fix** | One-line fix liên quan trực tiếp | Refactor nhiều file |
+| Tiêu chí         | YES — làm ngay                   | NO — để change riêng         |
+| ---------------- | -------------------------------- | ---------------------------- |
+| **Scope**        | Nhỏ, liên quan trực tiếp         | Lớn hoặc có thể tách độc lập |
+| **Architecture** | Nhất quán với patterns đã có     | Cần refactor lớn             |
+| **Bug fix**      | One-line fix liên quan trực tiếp | Refactor nhiều file          |
 
 Example:
 
@@ -341,6 +342,7 @@ Hãy explore codebase và trả lời:
 
 Sau explore, đề xuất file structure cho change này.
 ```
+
 ---
 
 ### 5.2 /opsx:propose — Lập kế hoạch
@@ -515,12 +517,12 @@ Hãy:
 
 **Bảng hành động theo từng loại kết quả:**
 
-| Kết quả | Hành động |
-|---------|-----------|
-| All passed | Tiến hành archive |
-| CRITICAL | Fix trước khi archive |
-| WARNING | Quyết định fix ngay hay ghi chú follow-up |
-| SUGGESTION | Ghi chú, để follow-up |
+| Kết quả    | Hành động                                 |
+| ---------- | ----------------------------------------- |
+| All passed | Tiến hành archive                         |
+| CRITICAL   | Fix trước khi archive                     |
+| WARNING    | Quyết định fix ngay hay ghi chú follow-up |
+| SUGGESTION | Ghi chú, để follow-up                     |
 
 ---
 
@@ -587,15 +589,15 @@ Chạy sau mỗi commit để giữ knowledge graph cập nhật. Nếu bỏ qua
 
 ### Bảng: Tình huống → Xử lý với Cowork
 
-| Tình huống | Xử lý với Cowork |
-|-----------|-------------------|
-| Bắt đầu ngày làm việc | `"Đọc ROADMAP, tôi nên làm gì hôm nay?"` |
-| Cần design màn hình mới | `"Tạo Figma Make prompt cho [màn hình]"` |
-| Bắt đầu change mới | `"Tạo /opsx:explore prompt cho [change]"` |
-| Paste Claude Code output | `"Đây là output từ /opsx:[bước]. Tóm tắt và tạo prompt bước tiếp theo."` |
-| Sau khi archive xong | `"Cập nhật ROADMAP, task [X] đã xong. Change tiếp theo là gì?"` |
-| Bị blocker | `"Claude Code báo lỗi [X]. Phân tích và đề xuất hướng xử lý."` |
-| Output quá dài để paste | Chỉ paste phần summary cuối (block `## Implementation Complete` hoặc `## Verification Report`) |
+| Tình huống               | Xử lý với Cowork                                                                               |
+| ------------------------ | ---------------------------------------------------------------------------------------------- |
+| Bắt đầu ngày làm việc    | `"Đọc ROADMAP, tôi nên làm gì hôm nay?"`                                                       |
+| Cần design màn hình mới  | `"Tạo Figma Make prompt cho [màn hình]"`                                                       |
+| Bắt đầu change mới       | `"Tạo /opsx:explore prompt cho [change]"`                                                      |
+| Paste Claude Code output | `"Đây là output từ /opsx:[bước]. Tóm tắt và tạo prompt bước tiếp theo."`                       |
+| Sau khi archive xong     | `"Cập nhật ROADMAP, task [X] đã xong. Change tiếp theo là gì?"`                                |
+| Bị blocker               | `"Claude Code báo lỗi [X]. Phân tích và đề xuất hướng xử lý."`                                 |
+| Output quá dài để paste  | Chỉ paste phần summary cuối (block `## Implementation Complete` hoặc `## Verification Report`) |
 
 ### Checklist nhanh cho mỗi change
 
@@ -655,6 +657,88 @@ Apply hoàn thành [N]/[M] tasks. Remaining tasks là manual verification.
 Tiến hành verify bằng code inspection cho các tasks này,
 sau đó mark all done và proceed với archive.
 ```
+
+### Transitive Skills — Cách hoạt động
+
+```
+/btw what the skills was used in this subagent
+
+  Based on the conversation so far, here are the skills that were invoked:
+
+  1. `superpowers:using-superpowers` — Loaded at session start (via the SessionStart hook system reminder). Establishes how to find and use skills.
+  2. `/opsx:apply` — The user's explicit command (/opsx:apply). Orchestrates the full apply workflow: select change → check status → get instructions → read context files → implement tasks.
+  3. `superpowers:using-git-worktrees` — Invoked by the apply instruction (step 1 of the schema's instruction). Used to detect isolation state, find the native EnterWorktree tool, nd create the isolated git worktree for
+  backend-production-hardening.
+  4. `superpowers:subagent-driven-development` — Invoked by the apply instruction (step 2). Drives the per-task execution loop: implementer subagent → spec compliance review → ode quality review → mark done → next task.
+
+  The skills used transitively (by the subagent-driven-development skill's design, not by explicit Skill tool calls):
+
+  - `superpowers:test-driven-development` — Each implementer subagent was instructed to follow TDD (RED → GREEN → commit). The skill itself says this is enforced transitively by ubagent-driven-development.
+  - `superpowers:requesting-code-review` — The code-quality-reviewer-prompt.md template references this skill's code-reviewer.md template, which was read and used for every code uality review dispatch.
+
+  So in total: 4 explicitly invoked skills, 2 transitively enforced by the subagent-driven-development framework.
+```
+
+Điểm mấu chốt: hai skills này **không được gọi bằng `Skill` tool** trong session chính. Thay vào đó, chúng được _nhúng vào instruction_ của skills cấp trên — và chỉ được đọc/thực thi bên trong subagent.
+
+---
+
+#### Cơ chế "transitive"
+
+```
+Session chính (apply)
+│
+├── opsx:apply
+│     └── đọc schema instruction → bước 2: "invoke subagent-driven-development"
+│
+└── superpowers:subagent-driven-development  ← explicitly invoked
+      │
+      │  Skill này SPAWN subagent cho mỗi task:
+      │
+      ├── [Implementer Subagent]
+      │     └── instruction bao gồm: "read superpowers:test-driven-development"
+      │           → subagent đọc skill TDD, follow RED→GREEN→commit
+      │           → session chính không biết, không gọi TDD trực tiếp
+      │
+      └── [Code Quality Reviewer Subagent]
+            └── instruction bao gồm: "read code-reviewer.md từ requesting-code-review"
+                  → subagent đọc template review, apply tiêu chí
+                  → session chính không gọi skill này trực tiếp
+```
+
+---
+
+#### `superpowers:test-driven-development` — Transitive qua subagent-driven-development
+
+`subagent-driven-development` khi spawn **implementer subagent**, nó pass vào system prompt/instruction của subagent đó một đoạn đại loại:
+
+> _"Before writing any implementation code, read `superpowers:test-driven-development`. Follow RED → GREEN → commit cycle for each task."_
+
+Subagent đó đọc skill TDD, hiểu quy trình, rồi tự thực thi — viết failing test trước, implement sau. Session chính (apply) không cần biết TDD tồn tại. `subagent-driven-development` là người "enforce" nó bằng cách nhúng vào context của mỗi implementer.
+
+Đây là lý do prompt bạn vừa thêm `"following TDD"` có hiệu lực: nó báo cho `subagent-driven-development` biết rằng tasks này yêu cầu TDD, từ đó nó mới include TDD skill vào subagent instruction.
+
+---
+
+#### `superpowers:requesting-code-review` — Transitive qua template reference
+
+`subagent-driven-development` sau mỗi implementer subagent sẽ spawn một **code-quality-reviewer subagent**. Reviewer subagent này được trỏ đến `code-quality-reviewer-prompt.md` — một template nằm trong skill `subagent-driven-development`.
+
+Bên trong template đó có dòng:
+
+> _"Use the review criteria from `superpowers:requesting-code-review/code-reviewer.md`"_
+
+Reviewer subagent đọc file đó, lấy tiêu chí (security, performance, correctness, naming…), rồi apply vào code vừa implement. Skill `requesting-code-review` không bao giờ xuất hiện trong session chính — nó chỉ sống bên trong reviewer subagent context.
+
+---
+
+#### Tóm lại — Tại sao thiết kế vậy?
+
+Đây là pattern **composition qua subagent context injection** thay vì explicit skill chaining. Lợi ích:
+
+- Session chính giữ được sự đơn giản — chỉ biết "apply một change"
+- Skills phức tạp (TDD, code review) được delegate xuống subagent, chạy isolated
+- Dễ swap: muốn bỏ TDD cho một change cụ thể, chỉ cần không mention "following TDD" trong tasks — `subagent-driven-development` sẽ không inject TDD skill vào subagent đó
 
 ---
 

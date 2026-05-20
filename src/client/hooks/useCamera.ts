@@ -28,6 +28,7 @@ export function useCamera() {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     startStream('environment')
     return () => { streamRef.current?.getTracks().forEach(t => t.stop()) }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps

@@ -259,6 +259,41 @@ Tạo prompt cho Claude Code bắt đầu từ `/opsx:explore`.
 Dừng lại và đợi tôi dán output của Explore trước khi sang bước tiếp theo.
 ```
 
+Example:
+
+```
+Tôi sẽ thực hiện change `frontend-solve-flow` theo bộ khung OpenSpec.
+
+**Bước 1 — ĐỌC, không được bỏ qua:**
+
+[OpenSpec Workflow Documentation](https://github.com/Fission-AI/OpenSpec/blob/main/docs/workflows.md)
+
+Dùng Read tool đọc lần lượt theo đúng thứ tự này:
+
+1. docs/SYSTEM_DESIGN.md
+2. docs/ROADMAP.md
+3. docs/plans/PHASE_2.5_IMPLEMENTATION.md
+
+Dùng Figma plugin đọc lần lượt theo đúng thứ tự này:
+
+1. Figma Make key: `1GKzZ1kg7MriJrsZpba6XY`
+
+KHÔNG tạo bất kỳ prompt nào cho đến khi hoàn tất bước này.
+
+**Bước 2 — XÁC NHẬN hiểu biết (bắt buộc trước khi tiếp tục):**
+
+Sau khi đọc xong, trả lời 2 câu hỏi sau:
+
+1. Change `frontend-solve-flow` thuộc task nào trong ROADMAP, priority gì, và dependency là gì?
+2. Những file nào trong codebase Claude Code cần đọc khi thực hiện explore cho change này?
+
+**Bước 3 — Sau khi đã trả lời đủ 3 câu trên:**
+
+Tạo prompt cho Claude Code bắt đầu từ `/opsx:explore`.
+
+Dừng lại và đợi tôi dán output của Explore trước khi sang bước tiếp theo.
+```
+
 **Tóm tắt trước khi tạo prompt:**
 
 > Nếu Cowork chỉ đọc opsx rồi tạo prompt ngay, có hai rủi ro thường gặp:
@@ -341,6 +376,113 @@ Hãy explore codebase và trả lời:
 4. Có conflict hoặc gap nào giữa G1 (Pydantic models) và việc implement error codes không?
 
 Sau explore, đề xuất file structure cho change này.
+```
+
+```
+/opsx:explore
+
+Change: frontend-solve-flow
+
+## Context
+Project: MathSnap (AI-powered math tutor, Next.js 16 + FastAPI)
+Change: G4 `frontend-solve-flow` — P0, D5 (15/05)
+Phase: 2.5 Sprint 2
+
+## Goal of this Explore
+Map the current state of `src/client` codebase and identify exactly what needs to
+be built for G4. Do NOT write any implementation code — produce a factual inventory
+of what exists and what is missing.
+
+## Scope of G4 (what will be implemented in Propose/Build)
+1. `lib/device-id.ts` + `hooks/useDeviceId.ts` — read/write `mathsnap_device_id`
+   from localStorage (UUID v4 via `crypto.randomUUID()`)
+2. `lib/api.ts` — typed `fetch` wrappers for `POST /api/ocr` and `POST /api/solve`
+   with `X-Device-ID` header
+3. **S-05** — Formula Preview & Edit: KaTeX realtime render of OCR output, editable
+   textarea for user correction, "Giải" CTA
+4. **S-06** — Solution Loading skeleton while `POST /api/solve` is in-flight
+5. **S-07** — Solution Detail with Progressive Disclosure: 3-state per step
+   (locked / open / is_answer), "Xem tất cả" escape hatch (FR-5 AC)
+6. Wire all screens into App Router navigation: /ocr → S-05 → /solve (S-06 → S-07)
+7. Manual E2E test on real mobile: camera → crop → confirm formula → solve → steps
+
+---
+
+## Files to Read
+
+### Group 1 — Local conventions (read first, these govern all code decisions)
+- `src/client/CLAUDE.md`
+- `src/client/DESIGN.md`
+
+### Group 2 — Existing scaffold
+- `src/client/app/layout.tsx`
+- `src/client/app/page.tsx`
+- `src/client/tsconfig.json`
+- `src/client/package.json`
+
+### Group 3 — Contracts from G1 (check existence, report status)
+- `src/client/types/history.ts` (or `src/client/types.ts`)
+- `src/client/fixtures/` — list and summarize contents
+- `src/client/hooks/` — list and summarize any existing hooks
+- `src/client/lib/` — list and summarize any existing utilities
+
+### Group 4 — G3 handoff (what Camera flow produced)
+- `src/client/app/(main)/layout.tsx`
+- `src/client/app/(main)/ocr/page.tsx` ← primary handoff point
+- `src/client/contexts/CaptureContext.tsx`
+- `src/client/components/BottomNav.tsx`
+- `src/client/components/KaTeXRenderer.tsx` (if exists)
+
+### Group 5 — Backend API contract
+- `src/server/app/main.py`
+
+### Group 6 — Figma Make design reference
+
+**IMPORTANT — Figma Make files require a non-obvious access pattern. Follow this
+exact decision tree instead of guessing:**
+
+**Step A:** Do NOT call `get_metadata(fileKey)` for Make files. It will fail with
+"not supported for Make files." Skip it entirely.
+
+**Step B:** Call `get_design_context(fileKey, nodeId: "0:1")`.
+Reasoning: Figma Make files always have `0:1` as the implicit root entry point —
+it is not a real design node but acts as the manifest. `get_design_context` with
+this nodeId returns a listing of all source files as MCP resource links
+(URIs like `file://figma/make/source/{fileKey}/path/to/file`).
+If `0:1` returns an error, try `1:0` as a fallback before giving up.
+
+**Step C:** From the resource link listing returned in Step B, identify and read
+these specific files for the solve-flow screens:
+- `src/app/screens/Solution.tsx` — S-07 Progressive Disclosure UI reference
+- `src/app/screens/OCR.tsx` — S-05 Formula Preview + S-06 loading states reference
+- `src/app/routes.tsx` — navigation model between screens
+
+**Step D:** If the MCP resource URIs cannot be fetched (no read_resource tool
+available), report the full file listing from Step B so the Propose step can
+reference it, then note: "Visual spec must come from PRD/SYSTEM_DESIGN only."
+Do NOT mark Figma as "inaccessible" and skip — always attempt Steps A→B→C→D
+in order.
+
+Figma Make key: `1GKzZ1kg7MriJrsZpba6XY`
+Relevant screens: Solution.tsx, OCR.tsx, routes.tsx
+
+---
+
+## What to Report
+
+For each file group above:
+1. **EXISTS / MISSING / STUB** — file present, absent, or present but incomplete
+2. **Content summary** (2–3 lines max per file if exists)
+3. **Gap** — what G4 needs that isn't there yet
+
+At the end, produce:
+
+### Inventory Summary
+- **Files to CREATE**: list with brief purpose
+- **Files to EDIT**: list with what specifically changes
+- **Blocked by**: any missing deps from G1/G2/G3 that must exist before G4 starts
+- **Assumptions requiring confirmation** before Propose step (list as numbered
+  questions — architectural decisions that have multiple valid answers)
 ```
 
 ---

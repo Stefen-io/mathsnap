@@ -1,5 +1,7 @@
-## ADDED Requirements
+## Purpose
 
+OCR endpoint that accepts image uploads and returns LaTeX formula strings extracted using pix2tex.
+## Requirements
 ### Requirement: OCR endpoint accepts image upload
 
 The system SHALL expose `POST /api/ocr` accepting `multipart/form-data` with a required `image` file field and a required `X-Device-ID` header.
@@ -59,3 +61,16 @@ The system SHALL NOT write the uploaded image to disk or send it to any external
 #### Scenario: OCR processes image in-process
 - **WHEN** an image is submitted to `/api/ocr`
 - **THEN** image bytes are passed directly to `LatexOCR` with no file write and no external HTTP call
+
+### Requirement: OCR endpoint applies rate limiting before pix2tex invocation
+
+The system SHALL check burst limit and daily quota (per `api-rate-limiting` spec) BEFORE invoking pix2tex. If either limit is exceeded, the system MUST return `429 RATE_LIMITED` without loading or running the OCR model.
+
+#### Scenario: Burst-limited device gets 429 before pix2tex call
+- **WHEN** a device exceeds burst limit and sends an OCR request
+- **THEN** server returns `429 RATE_LIMITED retryable=true` and pix2tex is NOT invoked
+
+#### Scenario: Daily-limited device gets 429 before pix2tex call
+- **WHEN** a device has reached daily quota (approximated via history_items count) and sends an OCR request
+- **THEN** server returns `429 RATE_LIMITED retryable=false` and pix2tex is NOT invoked
+

@@ -319,6 +319,28 @@ Explore thường hỏi 2–3 câu hỏi trước khi propose. Trả lời theo 
 | **Architecture** | Nhất quán với patterns đã có | Cần refactor lớn |
 | **Bug fix** | One-line fix liên quan trực tiếp | Refactor nhiều file |
 
+Example:
+
+```
+/opsx:explore
+
+Change: backend-production-hardening
+
+Đây là G2 trong Phase 2.5 của project MathSnap. G1 (backend-core-api) là dependency — assume G1 đã done hoặc đang done song song.
+
+Mục tiêu của change này: đưa backend từ "chạy được" lên "production-grade" bằng 3 nhóm:
+1. Rate limiting 2 lớp — daily quota (SQL COUNT từ history_items) + burst limit (in-memory sliding window 5 req/phút)
+2. Error response chuẩn hóa — 10 error codes theo SYSTEM_DESIGN §4.8 (INVALID_DEVICE_ID, RATE_LIMITED_DAILY, RATE_LIMITED_BURST, OCR_FAILED, LLM_FAILED, v.v.)
+3. Input validation — deviceId UUID v4 check, file MIME type check bằng python-magic, LaTeX sanitize + max_length
+
+Hãy explore codebase và trả lời:
+1. `src/server/app/main.py` hiện có gì? Thiếu gì so với scope trên?
+2. Cần tạo thêm file/module gì? (gợi ý: rate_limit.py, validators.py, errors.py)
+3. Có dependency nào trong pyproject.toml chưa có cần thêm không? (python-magic)
+4. Có conflict hoặc gap nào giữa G1 (Pydantic models) và việc implement error codes không?
+
+Sau explore, đề xuất file structure cho change này.
+```
 ---
 
 ### 5.2 /opsx:propose — Lập kế hoạch
@@ -353,6 +375,71 @@ Hãy:
 2. Kiểm tra xem tasks có align với ROADMAP không
 3. Flag bất kỳ scope creep hoặc thiếu sót nào
 4. Tạo sẵn prompt cho bước /opsx:apply tiếp theo
+```
+
+Example:
+
+```
+/opsx:propose backend-production-hardening
+
+Explore đã complete. Dưới đây là scope đã lock — dùng làm input cho proposal.
+
+## Scope (sau Explore + decisions)
+
+### In scope — 4 nhóm việc thực sự còn lại:
+
+**1. Rate Limiting (core of this change)**
+- Daily quota: SQL COUNT từ history_items WHERE device_id = ? AND created_at >= today
+  - Limit: DAILY_SOLVE_LIMIT (env, default 20) cho /api/solve
+  - Nếu vượt → 429, code RATE_LIMITED, retryable=false
+- Burst limit: in-memory sliding window per device_id
+  - Limit: BURST_LIMIT_PER_MINUTE (env, default 5)
+  - Nếu vượt → 429, code RATE_LIMITED, retryable=true
+- Apply cả hai cho /api/ocr VÀ /api/solve
+
+**2. LaTeX sanitize**
+- Strip null bytes + control chars (\x00–\x1f) từ SolveRequest.latex trước khi pass vào LCEL chain
+- max_length=2000 đã có từ G1 — không thay đổi
+
+**3. Structured logging khi rate limit hit**
+- Log: device_id (first 8 chars), limit type (daily/burst), endpoint, timestamp
+- Dùng logger đã có trong solve.py pattern — không thêm library mới
+
+**4. Config/env**
+- Thêm DAILY_SOLVE_LIMIT, BURST_LIMIT_PER_MINUTE vào .env.example
+- Thêm defaults vào rate_limit.py
+
+### Out of scope (already done in G1):
+- 10 error codes — done (errors.py)
+- ErrorResponse schema — done
+- deviceId UUID v4 validation — done
+- MIME type check — giữ Content-Type header check, bỏ python-magic
+- max_length validation — done
+
+### File structure:
+- NEW: src/server/app/rate_limit.py
+- MODIFY: src/server/app/routers/ocr.py (add rate limit calls)
+- MODIFY: src/server/app/routers/solve.py (add rate limit calls + LaTeX sanitize)
+- MODIFY: src/server/app/services/supabase.py (add count_daily function)
+- MODIFY: src/server/pyproject.toml (no new deps needed — python-magic bỏ qua)
+- MODIFY: src/server/.env.example (add 3 rate limit env vars)
+
+### Error behavior:
+- Daily exceeded: 429, RATE_LIMITED, retryable=false, message "Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai."
+- Burst exceeded: 429, RATE_LIMITED, retryable=true, message "Bạn đang gửi quá nhanh. Vui lòng đợi 1 phút."
+- FE phân biệt qua retryable field (không phải error code riêng)
+
+### TDD instruction:
+Khi viết plan hoặc tasks cho change này, với bất kỳ task nào có coding (implement, modify, add), hãy follow TDD: viết test trước → chạy test thất bại → implement → test pass. Ghi rõ "following TDD" trong task description tương ứng.
+
+### DoD:
+- Rate limit chặn được ở 21st request/day (daily)
+- Rate limit chặn được ở 6th request/phút (burst)
+- LaTeX với control chars bị strip trước khi vào LLM
+- Log xuất hiện trên Railway khi limit hit
+- Tất cả test bằng curl/Postman với input invalid
+
+Spec tham chiếu: SYSTEM_DESIGN.md §9 (Rate Limiting), §4.8 (Error Schema), §8.5 (Error messages).
 ```
 
 ---

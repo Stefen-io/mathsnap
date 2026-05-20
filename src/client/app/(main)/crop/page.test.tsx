@@ -17,9 +17,9 @@ vi.mock('@/contexts/CaptureContext', () => ({
 }))
 
 vi.mock('react-easy-crop', () => ({
-  default: ({ onCropComplete }: {
+  default: function MockCropper({ onCropComplete }: {
     onCropComplete: (_: Area, pixels: Area) => void
-  }) => {
+  }) {
     useEffect(() => {
       onCropComplete(
         { x: 0, y: 0, width: 100, height: 75 },

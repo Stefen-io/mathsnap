@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
@@ -13,15 +13,19 @@ export default function CropPage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
+
+  const imageUrl = useMemo(
+    () => (capturedBlob ? URL.createObjectURL(capturedBlob) : null),
+    [capturedBlob]
+  )
 
   useEffect(() => {
-    if (!capturedBlob) { router.push('/camera'); return }
-    const url = URL.createObjectURL(capturedBlob)
-    setImageUrl(url)
-    return () => URL.revokeObjectURL(url)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [capturedBlob])
+    return () => { if (imageUrl) URL.revokeObjectURL(imageUrl) }
+  }, [imageUrl])
+
+  useEffect(() => {
+    if (!capturedBlob) router.push('/camera')
+  }, [capturedBlob, router])
 
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)

@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Home, Clock, Settings } from 'lucide-react'
+import { Home, Clock, Bookmark, Settings } from 'lucide-react'
 
 const TABS = [
   { href: '/', label: 'Trang chủ', icon: Home },
   { href: '/history', label: 'Lịch sử', icon: Clock },
+  { href: '/bookmarks', label: 'Bookmark', icon: Bookmark },
   { href: '/settings', label: 'Cài đặt', icon: Settings },
 ] as const
 
@@ -30,7 +31,7 @@ export default function BottomNav() {
                   active ? 'text-[#18E299]' : 'text-gray-500 hover:text-[#18E299]'
                 }`}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                <Icon className="size-5" strokeWidth={active ? 2.5 : 2} aria-hidden="true" />
                 {label}
               </Link>
             </li>

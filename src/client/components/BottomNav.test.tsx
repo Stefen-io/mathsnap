@@ -16,10 +16,10 @@ import BottomNav from './BottomNav'
 describe('BottomNav', () => {
   beforeEach(() => vi.clearAllMocks())
 
-  it('renders 3 tab links', () => {
+  it('renders 4 tab links', () => {
     vi.mocked(usePathname).mockReturnValue('/')
     render(<BottomNav />)
-    expect(screen.getAllByRole('link')).toHaveLength(3)
+    expect(screen.getAllByRole('link')).toHaveLength(4)
   })
 
   it('Home tab has aria-current="page" at /', () => {
@@ -34,6 +34,14 @@ describe('BottomNav', () => {
     render(<BottomNav />)
     const historyLink = screen.getByRole('link', { name: /lịch sử/i })
     expect(historyLink.getAttribute('aria-current')).toBe('page')
+  })
+
+  it('Bookmarks tab has href /bookmarks', () => {
+    vi.mocked(usePathname).mockReturnValue('/bookmarks')
+    render(<BottomNav />)
+    const link = screen.getByRole('link', { name: /bookmark/i })
+    expect(link.getAttribute('href')).toBe('/bookmarks')
+    expect(link.getAttribute('aria-current')).toBe('page')
   })
 
   it('returns null on /camera (hidden on capture routes)', () => {

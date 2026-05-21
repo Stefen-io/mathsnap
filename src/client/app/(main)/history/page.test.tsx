@@ -26,7 +26,7 @@ import { getHistory, deleteHistoryItem, toggleBookmark } from '@/lib/api'
 
 const MOCK_ITEMS = [
   {
-    id: 'id-1', deviceId: 'd', latex: 'x^2', solutionSteps: [], language: 'vi',
+    id: 'id-1', deviceId: 'd', latex: 'x^2', solutionSteps: [], language: 'vi' as const,
     createdAt: '2026-05-01T10:00:00Z', isBookmarked: false,
   },
 ]

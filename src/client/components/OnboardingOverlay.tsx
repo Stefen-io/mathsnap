@@ -51,6 +51,7 @@ export function OnboardingOverlay() {
   const [step, setStep] = useState(0)
   const [mounted, setMounted] = useState(false)
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { setMounted(true) }, [])
 
   if (!mounted || hasSeenOnboarding) return null

@@ -66,6 +66,7 @@ export default function OcrPage() {
   useEffect(() => {
     if (!croppedBlob) { router.push('/camera'); return }
     if (!deviceId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     runOcr()
   }, [croppedBlob, deviceId, runOcr, router])
 

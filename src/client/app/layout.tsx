@@ -1,8 +1,10 @@
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { CaptureProvider } from "@/contexts/CaptureContext"
+import { OnboardingProvider } from "@/contexts/OnboardingContext"
+import { OnboardingOverlay } from "@/components/OnboardingOverlay"
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'})
@@ -25,7 +27,12 @@ export default function RootLayout({
     >
       <body>
         <ThemeProvider>
-          <CaptureProvider>{children}</CaptureProvider>
+          <CaptureProvider>
+            <OnboardingProvider>
+              {children}
+              <OnboardingOverlay />
+            </OnboardingProvider>
+          </CaptureProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -86,6 +86,8 @@ describe('SolvePage', () => {
 })
 
 describe('SolvePage bookmark button', () => {
+  beforeEach(() => vi.clearAllMocks())
+
   it('calls toggleBookmark(true) when bookmark button is tapped', async () => {
     vi.mocked(postSolve).mockResolvedValueOnce(mockItem as any)
     vi.mocked(toggleBookmark).mockResolvedValueOnce({ ...mockItem, isBookmarked: true } as any)

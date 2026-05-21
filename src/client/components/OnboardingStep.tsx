@@ -13,7 +13,7 @@ export function OnboardingStep({ title, description, illustration }: OnboardingS
         {illustration}
       </div>
       <div className="flex flex-col gap-3">
-        <h2 className="text-[36px] font-semibold leading-tight tracking-[-0.72px] text-[#0d0d0d]">
+        <h2 id="onboarding-title" className="text-[36px] font-semibold leading-tight tracking-[-0.72px] text-[#0d0d0d]">
           {title}
         </h2>
         <p className="text-[16px] leading-relaxed text-[#666666]">

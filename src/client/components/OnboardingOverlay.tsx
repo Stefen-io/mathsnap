@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Camera, Bookmark, Lock, CheckCircle2 } from 'lucide-react'
 import { useOnboarding } from '@/contexts/OnboardingContext'
 import { OnboardingStep } from '@/components/OnboardingStep'
@@ -49,14 +49,22 @@ const STEPS = [
 export function OnboardingOverlay() {
   const { hasSeenOnboarding, markAsSeen } = useOnboarding()
   const [step, setStep] = useState(0)
+  const [mounted, setMounted] = useState(false)
 
-  if (hasSeenOnboarding) return null
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!mounted || hasSeenOnboarding) return null
 
   const isLastStep = step === STEPS.length - 1
   const current = STEPS[step]
 
   return (
-    <div className="fixed inset-0 z-[60] flex flex-col bg-white pt-safe pb-safe">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="onboarding-title"
+      className="fixed inset-0 z-[60] flex flex-col bg-white pt-safe pb-safe"
+    >
       <div className="flex items-center justify-between px-6 py-4">
         <span className="font-mono text-[12px] font-semibold uppercase tracking-[0.6px] text-[#888888]">
           {step + 1} / {STEPS.length}

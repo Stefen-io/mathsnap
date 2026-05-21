@@ -9,11 +9,11 @@ export function PaginationDots({ total, current }: PaginationDotsProps) {
       {Array.from({ length: total }, (_, i) => (
         <div
           key={i}
-          className={
+          className={`size-2 rounded-full ${
             i === current
-              ? 'size-2 rounded-full bg-[#0d0d0d]'
-              : 'size-2 rounded-full border border-[rgba(0,0,0,0.1)] bg-transparent'
-          }
+              ? 'bg-[#0d0d0d]'
+              : 'border border-[rgba(0,0,0,0.1)] bg-transparent'
+          }`}
         />
       ))}
     </>

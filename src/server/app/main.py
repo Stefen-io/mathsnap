@@ -25,7 +25,7 @@ app = FastAPI(
     lifespan=lifespan,
     title="MathSnap API",
     description=(
-        "Backend API cho MathSnap — AI-powered math tutor. "
+        "MathSnap — AI-powered math tutor. "
         "Nhận ảnh bài toán, trả về LaTeX (OCR) và lời giải từng bước (LLM)."
     ),
     version="1.0.0",

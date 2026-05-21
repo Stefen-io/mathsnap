@@ -1,24 +1,4 @@
-# Spec: home-screen
-
-## Purpose
-
-Defines the Home screen and its surrounding shell: the `(main)` route group layout that constrains content to 480px and provides `CaptureProvider`, the Home page's three CTAs, the `BottomNav` component with active-route highlighting, and the brand design tokens wired into `globals.css`.
-
-## Requirements
-
-### Requirement: Main layout wraps all screens in a 480px mobile container
-
-The system SHALL provide `app/(main)/layout.tsx` that wraps all routes under the `(main)` route group in a centered container with `max-width: 480px` and provides `CaptureProvider` context and conditional `BottomNav` rendering.
-
-#### Scenario: Container constrains content width
-- **WHEN** any page under `app/(main)/` is rendered
-- **THEN** the content area has `max-width: 480px` and is centered horizontally
-
-#### Scenario: CaptureContext is available to all (main) pages
-- **WHEN** any component under `app/(main)/` calls `useCaptureContext()`
-- **THEN** the hook returns a valid context object without throwing
-
----
+## MODIFIED Requirements
 
 ### Requirement: Home screen renders 3 CTAs
 
@@ -69,17 +49,3 @@ The system SHALL provide `components/BottomNav.tsx` with 4 tabs: Home (`/`), His
 #### Scenario: BottomNav is visible on Home screen
 - **WHEN** the current pathname is `/`
 - **THEN** BottomNav is rendered and visible
-
----
-
-### Requirement: Brand design tokens are wired in globals.css
-
-The system SHALL add `--color-brand: #18E299`, `--color-brand-light: #d4fae8`, `--color-brand-deep: #0fa76e` to the `:root` block in `globals.css`. The existing shadcn neutral tokens MUST NOT be removed or modified.
-
-#### Scenario: Brand color variable is accessible
-- **WHEN** any component references `var(--color-brand)` in its styles
-- **THEN** the computed value resolves to `#18E299` (or its oklch equivalent)
-
-#### Scenario: Existing shadcn tokens remain intact
-- **WHEN** shadcn components (Button, etc.) are rendered after the globals.css change
-- **THEN** their visual appearance is unchanged from before

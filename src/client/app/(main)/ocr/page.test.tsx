@@ -116,4 +116,16 @@ describe('OcrPage', () => {
     expect(await screen.findByText('File exceeds 2MB limit.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Chụp lại' })).toBeTruthy()
   })
+
+  it('shows Chụp lại for OCR_NO_FORMULA (empty formulas)', async () => {
+    vi.mocked(postOcr).mockResolvedValueOnce({ formulas: [] })
+    vi.mocked(useCaptureContext).mockReturnValue({
+      ...baseContext,
+      croppedBlob: new Blob(['crop'], { type: 'image/jpeg' }),
+    })
+    vi.mocked(useDeviceId).mockReturnValue('test-device')
+    render(<OcrPage />)
+    expect(await screen.findByText('Không nhận diện được công thức trong ảnh.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Chụp lại' })).toBeTruthy()
+  })
 })

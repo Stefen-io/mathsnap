@@ -6,7 +6,7 @@ import { ChevronLeft, Bookmark } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
-import { postSolve, ApiError } from '@/lib/api'
+import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import { StepCard } from '@/components/StepCard'
 import type { SolutionStep } from '@/types/history'
@@ -30,6 +30,8 @@ export default function SolvePage() {
   const [steps, setSteps] = useState<SolutionStep[]>([])
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]))
   const [error, setError] = useState<ErrorInfo | null>(null)
+  const [historyItemId, setHistoryItemId] = useState<string | null>(null)
+  const [isBookmarked, setIsBookmarked] = useState(false)
 
   function toggleStep(index: number) {
     setOpenSteps(prev => {
@@ -44,9 +46,12 @@ export default function SolvePage() {
     setPageState('loading')
     setError(null)
     try {
-      const result = await postSolve(ocrLatex, deviceId)
+      const language = (localStorage.getItem('mathsnap_language') as 'vi' | 'en') ?? 'vi'
+      const result = await postSolve(ocrLatex, deviceId, language)
       setSolveResult(result)
       setSteps(result.solutionSteps)
+      setHistoryItemId(result.id)
+      setIsBookmarked(result.isBookmarked)
       setPageState('success')
     } catch (err) {
       const info: ErrorInfo = err instanceof ApiError
@@ -125,10 +130,29 @@ export default function SolvePage() {
 
           <div className="fixed bottom-0 left-1/2 w-full max-w-[480px] -translate-x-1/2 flex items-center gap-3 border-t border-black/5 bg-white px-4 py-3">
             <button
-              className="flex size-12 shrink-0 items-center justify-center rounded-full border border-black/5 text-[#0d0d0d]"
+              onClick={async () => {
+                if (!historyItemId || !deviceId) return
+                const next = !isBookmarked
+                setIsBookmarked(next) // optimistic
+                try {
+                  await toggleBookmark(historyItemId, deviceId, next)
+                } catch {
+                  setIsBookmarked(!next) // revert on error
+                }
+              }}
+              className={`flex size-12 shrink-0 items-center justify-center rounded-full transition-colors ${
+                isBookmarked
+                  ? 'bg-[#d4fae8] text-[#0fa76e]'
+                  : 'border border-black/5 text-[#0d0d0d]'
+              }`}
               aria-label="Đánh dấu"
             >
-              <Bookmark className="size-5" aria-hidden="true" />
+              <Bookmark
+                className="size-5"
+                fill={isBookmarked ? 'currentColor' : 'none'}
+                strokeWidth={isBookmarked ? 1.5 : 2}
+                aria-hidden="true"
+              />
             </button>
             <button
               onClick={() => { reset(); router.push('/') }}

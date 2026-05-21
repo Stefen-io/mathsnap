@@ -149,6 +149,7 @@ export default function SolvePage() {
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
           <div className="w-full rounded-[16px] border border-black/5 p-6 text-center shadow-[0_2px_4px_rgba(0,0,0,0.03)]">
             <p className="mb-4 text-[15px] text-[#333]">{error.message}</p>
+            {/* LLM_CONTENT_POLICY always navigates away regardless of retryable flag */}
             {errorCode === 'LLM_CONTENT_POLICY' ? (
               <button
                 onClick={() => { reset(); router.push('/camera') }}

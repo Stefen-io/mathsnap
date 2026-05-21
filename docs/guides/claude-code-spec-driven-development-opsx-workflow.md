@@ -274,9 +274,10 @@ Dùng Read tool đọc lần lượt theo đúng thứ tự này:
 2. docs/ROADMAP.md
 3. docs/plans/PHASE_2.5_IMPLEMENTATION.md
 
-Dùng Figma plugin đọc lần lượt theo đúng thứ tự này:
+Dùng Figma MCP tool đọc lần lượt theo đúng thứ tự này:
 
-1. Figma Make key: `1GKzZ1kg7MriJrsZpba6XY`
+1. `https://www.figma.com/make/1GKzZ1kg7MriJrsZpba6XY` (Figma Make file)
+	Use `get_design_context(fileKey, nodeId: "0:1")` to get the design context.
 
 KHÔNG tạo bất kỳ prompt nào cho đến khi hoàn tất bước này.
 
@@ -485,76 +486,6 @@ At the end, produce:
   questions — architectural decisions that have multiple valid answers)
 ```
 
-```
-/opsx:explore frontend-error-polish
-
-## Context
-
-Change G5 trong Phase 2.5 Implementation Plan. Scheduled D7 (17/05), Sprint 2.
-
-**Mục tiêu:** Implement S-10 Error State với 3 variant phân biệt + S-12 Onboarding one-time overlay + S-14 Problem Selector + mobile responsive QA.
-
-**Dependencies đã done:** G2 (backend-production-hardening) và G4 (frontend-solve-flow) phải đã archived trước khi bắt đầu change này.
-
-## Design reference
-
-Figma Make key: `1GKzZ1kg7MriJrsZpba6XY`
-
-File structure quan trọng từ Figma Make:
-- `src/app/screens/OCR.tsx` — OCR loading và xử lý kết quả
-- `src/app/screens/Solution.tsx` — solution display
-- `src/app/components/OnboardingOverlay.tsx`, `OnboardingStep.tsx` — S-12 Onboarding component
-- `src/app/contexts/OnboardingContext.tsx` — onboarding state management
-- `src/app/screens/ProblemSelector.tsx` — S-14 multi-formula selector
-- `src/imports/pasted_text/ocr-error-state-fix.tsx` — có error state reference code
-
-**IMPORTANT** — YOU SHOULD READ THE FIGMA MCP RESOURCE BEFOREHAND TO UNDERSTAND HOW TO USE TOOL:
-
-{"name":"tools-and-prompts.md","title":null,"uri":"file://figma/docs/tools-and-prompts.md","description":null,"mimeType":"text/plain","size":null,"icons":null,"annotations":null,"meta":null,"type":"resource_link"}:
-
-## Files cần explore trong codebase
-
-Đọc theo thứ tự này:
-
-1. `src/client/types.ts` — verify ErrorCode/ErrorResponse types có đủ theo SD §4.8 chưa
-2. `src/server/app/models.py` — ErrorResponse Pydantic schema, 10 error codes
-3. `src/client/lib/api.ts` (hoặc tương đương) — cách error được propagate từ API call
-4. Tìm S-10 Error component — `find src/client -name "*error*" -o -name "*Error*"`
-5. `src/client/app/routes.tsx` — routing structure, S-10 là route hay overlay
-6. `src/client/app/screens/OCR.tsx` — current error handling trong OCR flow
-7. `src/client/app/screens/Solution.tsx` — current error handling trong Solution flow
-
-## Spec từ SYSTEM_DESIGN và PRD
-
-**S-10 phải cover 3 error variant (SD §5.5, §5.6, §5.7):**
-- OCR Fail: message + action "Chọn ảnh khác" hoặc "Chụp lại" / "Nhập thủ công"
-- LLM Fail (timeout/invalid/content): message + action "Thử lại" hoặc "Nhập bài toán khác" — PHẢI giữ `latex` state (SD §5.6 state preservation, US-E3 PRD)
-- Rate Limited: message phân biệt daily-limit (hiển thị reset time) vs burst-limit (retry sau 60s) — SD §8.5
-
-**S-12 Onboarding:** one-time overlay (SD OQ-3 PRD) — chỉ show lần đầu mở app
-
-**S-14 Problem Selector:** multi-formula case từ OCR — chọn 1 trong N formula (SD OQ-4 PRD)
-
-**Mobile responsive QA:** iOS Safari + Android Chrome (NFR-3)
-
-## Cut rule
-
-Nếu Cut Trigger T2 đã fired (xem `docs/plans/PHASE_2.5_IMPLEMENTATION.md` Section 7):
-- Bỏ S-12 Onboarding
-- Bỏ S-14 Problem Selector
-- Chỉ implement S-10 Error State (P0, không được cắt — Hard Floor)
-
-## Expected output của Explore
-
-Báo cáo:
-1. Current state: S-10/S-12/S-14 đã implement được bao nhiêu % chưa?
-2. Gap analysis: cái gì còn thiếu?
-3. File list chính xác sẽ bị modified/created
-4. Risk hoặc ambiguity cần resolve trước khi Propose
-
-Dừng lại sau Explore. Không implement. Chờ user review output rồi mới tiếp tục.
-```
-
 ---
 
 ### 5.2 /opsx:propose — Lập kế hoạch
@@ -668,6 +599,7 @@ Spec tham chiếu: SYSTEM_DESIGN.md §9 (Rate Limiting), §4.8 (Error Schema), �
 /opsx:apply [tên-change]
 
 Implement theo tasks.md đã tạo.
+Follow TDD: viết test trước → chạy test thất bại → implement → test pass (cho tasks có coding)
 Ưu tiên: P0 tasks trước.
 Nếu gặp blocker, dừng và report — đừng tự ý thay đổi scope.
 ```

@@ -15,3 +15,10 @@ export interface HistoryItem {
   createdAt: string; // ISO 8601
   isBookmarked: boolean;
 }
+
+export interface HistoryListResponse {
+  items: HistoryItem[]
+  total: number
+  page: number
+  limit: number
+}

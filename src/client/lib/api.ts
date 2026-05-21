@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/types/history'
+import type { HistoryItem, HistoryListResponse } from '@/types/history'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
 
@@ -61,6 +61,55 @@ export async function postSolve(
       'X-Device-ID': deviceId,
     },
     body: JSON.stringify({ latex, language }),
+  })
+  if (!res.ok) await handleError(res)
+  return res.json() as Promise<HistoryItem>
+}
+
+export async function getHistory(
+  deviceId: string,
+  opts?: { page?: number; limit?: number; bookmarked?: boolean },
+): Promise<HistoryListResponse> {
+  const params = new URLSearchParams()
+  if (opts?.page) params.set('page', String(opts.page))
+  if (opts?.limit) params.set('limit', String(opts.limit))
+  if (opts?.bookmarked !== undefined) params.set('bookmarked', String(opts.bookmarked))
+  const query = params.toString() ? `?${params.toString()}` : ''
+  const res = await fetch(`${BASE}/api/history${query}`, {
+    headers: { 'X-Device-ID': deviceId },
+  })
+  if (!res.ok) await handleError(res)
+  return res.json() as Promise<HistoryListResponse>
+}
+
+export async function getHistoryItem(id: string, deviceId: string): Promise<HistoryItem> {
+  const res = await fetch(`${BASE}/api/history/${id}`, {
+    headers: { 'X-Device-ID': deviceId },
+  })
+  if (!res.ok) await handleError(res)
+  return res.json() as Promise<HistoryItem>
+}
+
+export async function deleteHistoryItem(id: string, deviceId: string): Promise<void> {
+  const res = await fetch(`${BASE}/api/history/${id}`, {
+    method: 'DELETE',
+    headers: { 'X-Device-ID': deviceId },
+  })
+  if (!res.ok) await handleError(res)
+}
+
+export async function toggleBookmark(
+  id: string,
+  deviceId: string,
+  isBookmarked: boolean,
+): Promise<HistoryItem> {
+  const res = await fetch(`${BASE}/api/history/${id}/bookmark`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Device-ID': deviceId,
+    },
+    body: JSON.stringify({ isBookmarked }),
   })
   if (!res.ok) await handleError(res)
   return res.json() as Promise<HistoryItem>

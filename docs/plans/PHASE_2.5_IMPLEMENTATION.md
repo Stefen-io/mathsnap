@@ -330,7 +330,7 @@ Phase 2.5 chia thành 2 mini-sprint, mỗi sprint 4 ngày, mỗi sprint có goal
 
 | Ngày                              | Trigger fired | Quyết định | Tasks bị cắt | Tiết kiệm |
 | --------------------------------- | ------------- | ---------- | ------------ | --------- |
-| _(empty — chưa có trigger fired)_ |               |            |              |           |
+| 2026-05-20 | Manual — backend constraint | Cut S-14 Problem Selector | ProblemSelector component | ~1h |
 
 ---
 

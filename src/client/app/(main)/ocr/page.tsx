@@ -1,15 +1,20 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
-import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postOcr, ApiError } from '@/lib/api'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 
 type OcrState = 'ocr-loading' | 'confirm' | 'error'
+
+interface OcrErrorInfo {
+  code: string
+  message: string
+  retryable: boolean
+}
 
 function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-lg bg-gray-100 ${className}`} />
@@ -22,6 +27,7 @@ export default function OcrPage() {
   const [state, setState] = useState<OcrState>('ocr-loading')
   const [editedLatex, setEditedLatex] = useState('')
   const [confidence, setConfidence] = useState(1)
+  const [errorInfo, setErrorInfo] = useState<OcrErrorInfo | null>(null)
 
   const objectUrl = useMemo(
     () => (croppedBlob ? URL.createObjectURL(croppedBlob) : null),
@@ -32,14 +38,15 @@ export default function OcrPage() {
     return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
   }, [objectUrl])
 
-  useEffect(() => {
-    if (!croppedBlob) { router.push('/camera'); return }
-    if (!deviceId) return
+  const runOcr = useCallback(() => {
+    if (!croppedBlob || !deviceId) return
+    setState('ocr-loading')
+    setErrorInfo(null)
     postOcr(croppedBlob, deviceId)
       .then(res => {
         const formula = res.formulas[0]
         if (!formula) {
-          toast.error('Không nhận diện được công thức.')
+          setErrorInfo({ code: 'OCR_NO_FORMULA', message: 'Không nhận diện được công thức trong ảnh.', retryable: false })
           setState('error')
           return
         }
@@ -48,11 +55,20 @@ export default function OcrPage() {
         setState('confirm')
       })
       .catch((err: unknown) => {
-        const msg = err instanceof ApiError ? err.message : 'Không nhận diện được công thức.'
-        toast.error(msg)
+        const info: OcrErrorInfo = err instanceof ApiError
+          ? { code: err.code, message: err.message, retryable: err.retryable }
+          : { code: 'UNKNOWN', message: 'Có lỗi xảy ra. Vui lòng thử lại.', retryable: false }
+        setErrorInfo(info)
         setState('error')
       })
-  }, [croppedBlob, deviceId, router])
+  }, [croppedBlob, deviceId])
+
+  useEffect(() => {
+    if (!croppedBlob) { router.push('/camera'); return }
+    if (!deviceId) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    runOcr()
+  }, [croppedBlob, deviceId, runOcr, router])
 
   if (!croppedBlob) return null
 
@@ -75,15 +91,24 @@ export default function OcrPage() {
         </div>
       )}
 
-      {state === 'error' && (
+      {state === 'error' && errorInfo && (
         <div className="flex flex-col items-center gap-4 pt-12">
-          <p className="text-[15px] text-[#333]">Không nhận diện được công thức.</p>
-          <button
-            onClick={() => { reset(); router.push('/camera') }}
-            className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
-          >
-            Chụp lại
-          </button>
+          <p className="text-center text-[15px] text-[#333]">{errorInfo.message}</p>
+          {errorInfo.retryable ? (
+            <button
+              onClick={runOcr}
+              className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
+            >
+              Thử lại
+            </button>
+          ) : (
+            <button
+              onClick={() => { reset(); router.push('/camera') }}
+              className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
+            >
+              Chụp lại
+            </button>
+          )}
         </div>
       )}
 

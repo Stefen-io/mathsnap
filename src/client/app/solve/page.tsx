@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Bookmark } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
-import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postSolve, ApiError } from '@/lib/api'
@@ -94,6 +93,7 @@ export default function SolvePage() {
   const [steps, setSteps] = useState<SolutionStep[]>([])
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]))
   const [error, setError] = useState<ErrorInfo | null>(null)
+  const [errorCode, setErrorCode] = useState<string | null>(null)
 
   function toggleStep(index: number) {
     setOpenSteps(prev => {
@@ -107,16 +107,18 @@ export default function SolvePage() {
     if (!ocrLatex || !deviceId) return
     setPageState('loading')
     setError(null)
+    setErrorCode(null)
     try {
       const result = await postSolve(ocrLatex, deviceId)
       setSolveResult(result)
       setSteps(result.solutionSteps)
       setPageState('success')
     } catch (err) {
+      const code = err instanceof ApiError ? err.code : 'UNKNOWN'
       const info: ErrorInfo = err instanceof ApiError
         ? { message: err.message, retryable: err.retryable }
-        : { message: 'Đã xảy ra lỗi. Vui lòng thử lại.', retryable: true }
-      toast.error(info.message)
+        : { message: 'Không thể tạo lời giải. Vui lòng thử lại.', retryable: true }
+      setErrorCode(code)
       setError(info)
       setPageState('error')
     }
@@ -147,14 +149,21 @@ export default function SolvePage() {
         <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
           <div className="w-full rounded-[16px] border border-black/5 p-6 text-center shadow-[0_2px_4px_rgba(0,0,0,0.03)]">
             <p className="mb-4 text-[15px] text-[#333]">{error.message}</p>
-            {error.retryable && (
+            {errorCode === 'LLM_CONTENT_POLICY' ? (
+              <button
+                onClick={() => { reset(); router.push('/camera') }}
+                className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
+              >
+                Nhập bài toán khác
+              </button>
+            ) : error.retryable ? (
               <button
                 onClick={runSolve}
                 className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
               >
                 Thử lại
               </button>
-            )}
+            ) : null}
           </div>
         </div>
       )}

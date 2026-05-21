@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 const mockPush = vi.fn()
+const mockRouter = { push: mockPush }
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: mockPush }) }))
+vi.mock('next/navigation', () => ({ useRouter: () => mockRouter }))
 vi.mock('@/contexts/CaptureContext', () => ({
   useCaptureContext: vi.fn(),
 }))

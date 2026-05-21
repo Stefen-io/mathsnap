@@ -67,8 +67,7 @@ export default function OcrPage() {
     if (!croppedBlob) { router.push('/camera'); return }
     if (!deviceId) return
     runOcr()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [croppedBlob, deviceId, runOcr])
+  }, [croppedBlob, deviceId, runOcr, router])
 
   if (!croppedBlob) return null
 

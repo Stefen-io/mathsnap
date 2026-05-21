@@ -67,7 +67,10 @@ describe('deleteHistoryItem', () => {
     await deleteHistoryItem(ITEM_ID, DEVICE)
     expect(fetch).toHaveBeenCalledWith(
       expect.stringContaining(`/api/history/${ITEM_ID}`),
-      expect.objectContaining({ method: 'DELETE' })
+      expect.objectContaining({
+        method: 'DELETE',
+        headers: expect.objectContaining({ 'X-Device-ID': DEVICE }),
+      })
     )
   })
 })
@@ -90,5 +93,21 @@ describe('toggleBookmark', () => {
       })
     )
     expect(result.isBookmarked).toBe(true)
+  })
+
+  it('calls PATCH with isBookmarked: false when unbookmarking', async () => {
+    const mockItem = { id: ITEM_ID, deviceId: DEVICE, latex: 'x', solutionSteps: [], language: 'vi', createdAt: '', isBookmarked: false }
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify(mockItem), { status: 200 })
+    )
+    const result = await toggleBookmark(ITEM_ID, DEVICE, false)
+    expect(fetch).toHaveBeenCalledWith(
+      expect.stringContaining(`/api/history/${ITEM_ID}/bookmark`),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ isBookmarked: false }),
+      })
+    )
+    expect(result.isBookmarked).toBe(false)
   })
 })

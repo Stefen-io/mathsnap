@@ -71,8 +71,8 @@ export async function getHistory(
   opts?: { page?: number; limit?: number; bookmarked?: boolean },
 ): Promise<HistoryListResponse> {
   const params = new URLSearchParams()
-  if (opts?.page) params.set('page', String(opts.page))
-  if (opts?.limit) params.set('limit', String(opts.limit))
+  if (opts?.page !== undefined) params.set('page', String(opts.page))
+  if (opts?.limit !== undefined) params.set('limit', String(opts.limit))
   if (opts?.bookmarked !== undefined) params.set('bookmarked', String(opts.bookmarked))
   const query = params.toString() ? `?${params.toString()}` : ''
   const res = await fetch(`${BASE}/api/history${query}`, {

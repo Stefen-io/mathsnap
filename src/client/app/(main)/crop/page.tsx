@@ -32,10 +32,15 @@ export default function CropPage() {
   }, [])
 
   async function handleConfirm() {
-    if (!imageUrl || !croppedAreaPixels) return
-    const blob = await getCroppedImg(imageUrl, croppedAreaPixels)
-    setCroppedBlob(blob)
-    router.push('/ocr')
+    if (!capturedBlob || !croppedAreaPixels) return
+    const freshUrl = URL.createObjectURL(capturedBlob)
+    try {
+      const blob = await getCroppedImg(freshUrl, croppedAreaPixels)
+      setCroppedBlob(blob)
+      router.push('/ocr')
+    } finally {
+      URL.revokeObjectURL(freshUrl)
+    }
   }
 
   if (!capturedBlob || !imageUrl) return null

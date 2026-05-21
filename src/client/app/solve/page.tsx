@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, Bookmark } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
+import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postSolve, ApiError } from '@/lib/api'
@@ -121,6 +122,7 @@ export default function SolvePage() {
       setErrorCode(code)
       setError(info)
       setPageState('error')
+      toast.error(err instanceof ApiError ? err.message : 'Không thể tạo lời giải.')
     }
   }
 

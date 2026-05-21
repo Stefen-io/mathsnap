@@ -1,6 +1,7 @@
 import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
+import { Toaster } from "sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { CaptureProvider } from "@/contexts/CaptureContext"
 import { OnboardingProvider } from "@/contexts/OnboardingContext"
@@ -31,6 +32,7 @@ export default function RootLayout({
             <OnboardingProvider>
               {children}
               <OnboardingOverlay />
+              <Toaster />
             </OnboardingProvider>
           </CaptureProvider>
         </ThemeProvider>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { useCaptureContext } from '@/contexts/CaptureContext'
@@ -29,14 +29,14 @@ export default function OcrPage() {
   const [confidence, setConfidence] = useState(1)
   const [errorInfo, setErrorInfo] = useState<OcrErrorInfo | null>(null)
 
-  const objectUrl = useMemo(
-    () => (croppedBlob ? URL.createObjectURL(croppedBlob) : null),
-    [croppedBlob],
-  )
+  const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    return () => { if (objectUrl) URL.revokeObjectURL(objectUrl) }
-  }, [objectUrl])
+    if (!croppedBlob) { setObjectUrl(null); return }
+    const url = URL.createObjectURL(croppedBlob)
+    setObjectUrl(url)
+    return () => { URL.revokeObjectURL(url); setObjectUrl(null) }
+  }, [croppedBlob])
 
   const runOcr = useCallback(() => {
     if (!croppedBlob || !deviceId) return

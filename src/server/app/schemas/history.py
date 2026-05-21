@@ -26,6 +26,12 @@ class SolveRequest(BaseModel):
     language: Literal["vi", "en"] = "vi"
 
 
+class BookmarkRequest(BaseModel):
+    is_bookmarked: bool = Field(alias="isBookmarked")
+
+    model_config = ConfigDict(populate_by_name=True)
+
+
 class HistoryListResponse(BaseModel):
     items: list[HistoryItem]
     total: int

@@ -31,12 +31,10 @@ def client():
 
 def test_patch_bookmark_explicit_true_sets_true(client):
     updated = _mock_item(True)
-    with patch("app.services.supabase.get_supabase", new_callable=AsyncMock) as mock_db, \
-         patch("app.services.supabase.get_history_item", new_callable=AsyncMock) as mock_get, \
+    with patch("app.services.supabase.get_supabase", new_callable=AsyncMock), \
          patch("app.services.supabase.set_bookmark", new_callable=AsyncMock) as mock_set:
         from app.schemas.history import HistoryItem
         mock_set.return_value = HistoryItem(**updated)
-        mock_get.return_value = HistoryItem(**_mock_item(False))
         resp = client.patch(
             f"/api/history/{ITEM_ID}/bookmark",
             json={"isBookmarked": True},
@@ -49,11 +47,9 @@ def test_patch_bookmark_explicit_true_sets_true(client):
 def test_patch_bookmark_idempotent(client):
     updated = _mock_item(True)
     with patch("app.services.supabase.get_supabase", new_callable=AsyncMock), \
-         patch("app.services.supabase.get_history_item", new_callable=AsyncMock) as mock_get, \
          patch("app.services.supabase.set_bookmark", new_callable=AsyncMock) as mock_set:
         from app.schemas.history import HistoryItem
         mock_set.return_value = HistoryItem(**updated)
-        mock_get.return_value = HistoryItem(**_mock_item(True))
         resp = client.patch(
             f"/api/history/{ITEM_ID}/bookmark",
             json={"isBookmarked": True},

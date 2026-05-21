@@ -96,9 +96,6 @@ async def set_bookmark(
     device_id: UUID,
     is_bookmarked: bool,
 ) -> HistoryItem | None:
-    existing = await get_history_item(client, item_id, device_id)
-    if existing is None:
-        return None
     response = (
         await client.table("history_items")
         .update({"is_bookmarked": is_bookmarked})

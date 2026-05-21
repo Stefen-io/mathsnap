@@ -1,3 +1,4 @@
+import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
 // URL.createObjectURL / revokeObjectURL are not implemented in happy-dom

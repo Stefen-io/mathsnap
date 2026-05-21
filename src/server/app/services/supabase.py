@@ -90,17 +90,15 @@ async def delete_history_item(
     return bool(response.data)
 
 
-async def toggle_bookmark(
+async def set_bookmark(
     client: AsyncClient,
     item_id: UUID,
     device_id: UUID,
+    is_bookmarked: bool,
 ) -> HistoryItem | None:
-    existing = await get_history_item(client, item_id, device_id)
-    if existing is None:
-        return None
     response = (
         await client.table("history_items")
-        .update({"is_bookmarked": not existing.is_bookmarked})
+        .update({"is_bookmarked": is_bookmarked})
         .eq("id", str(item_id))
         .eq("device_id", str(device_id))
         .execute()

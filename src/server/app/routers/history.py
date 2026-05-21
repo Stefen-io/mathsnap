@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.dependencies import validate_device_id
 from app.schemas.errors import ErrorResponse, HISTORY_NOT_FOUND
+from app.schemas.history import HistoryItem, HistoryListResponse, SolveRequest, BookmarkRequest
 from app.services import supabase as db
 
 router = APIRouter()
@@ -62,12 +63,13 @@ async def delete_history_item(
 
 
 @router.patch("/history/{item_id}/bookmark", tags=["History"])
-async def toggle_bookmark(
+async def set_bookmark(
     item_id: UUID,
+    body: BookmarkRequest,
     device_id: UUID = Depends(validate_device_id),
 ) -> dict:
     client = await _get_client()
-    item = await db.toggle_bookmark(client, item_id, device_id)
+    item = await db.set_bookmark(client, item_id, device_id, body.is_bookmarked)
     if item is None:
         raise HTTPException(
             status_code=404,

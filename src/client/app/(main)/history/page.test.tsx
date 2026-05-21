@@ -54,4 +54,13 @@ describe('HistoryPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /xóa/i }))
     await waitFor(() => expect(deleteHistoryItem).toHaveBeenCalledWith('id-1', 'device-123'))
   })
+
+  it('calls toggleBookmark when bookmark button is clicked', async () => {
+    vi.mocked(getHistory).mockResolvedValueOnce({ items: MOCK_ITEMS, total: 1, page: 1, limit: 20 })
+    vi.mocked(toggleBookmark).mockResolvedValueOnce({ ...MOCK_ITEMS[0], isBookmarked: true })
+    render(<HistoryPage />)
+    await screen.findByTestId('katex')
+    fireEvent.click(screen.getByRole('button', { name: /lưu/i }))
+    await waitFor(() => expect(toggleBookmark).toHaveBeenCalledWith('id-1', 'device-123', true))
+  })
 })

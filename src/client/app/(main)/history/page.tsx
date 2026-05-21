@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { PenTool, Bookmark, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
@@ -23,6 +23,7 @@ export default function HistoryPage() {
   const [items, setItems] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [swipedId, setSwipedId] = useState<string | null>(null)
+  const draggingId = useRef<string | null>(null)
 
   useEffect(() => {
     if (!deviceId) return
@@ -111,12 +112,14 @@ export default function HistoryPage() {
                 drag="x"
                 dragConstraints={{ left: -80, right: 0 }}
                 dragElastic={0.1}
+                onDragStart={() => { draggingId.current = item.id }}
                 onDragEnd={(_, info) => {
                   if (info.offset.x < -40) setSwipedId(item.id)
                   else setSwipedId(null)
+                  setTimeout(() => { draggingId.current = null }, 0)
                 }}
                 animate={{ x: swipedId === item.id ? -80 : 0 }}
-                onClick={() => router.push(`/history/${item.id}`)}
+                onClick={() => { if (draggingId.current !== item.id) router.push(`/history/${item.id}`) }}
                 className="relative z-10 flex cursor-pointer items-center justify-between gap-4 rounded-[16px] border border-black/5 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.03)] transition-colors active:bg-[#fafafa]"
               >
                 <div className="min-w-0 flex-1">

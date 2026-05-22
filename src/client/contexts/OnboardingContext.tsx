@@ -7,6 +7,7 @@ const STORAGE_KEY = 'mathsnap.onboarding.seen'
 interface OnboardingState {
   hasSeenOnboarding: boolean
   markAsSeen: () => void
+  replayOnboarding: () => void
 }
 
 const OnboardingContext = createContext<OnboardingState | null>(null)
@@ -26,8 +27,13 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     setHasSeenOnboarding(true)
   }
 
+  function replayOnboarding() {
+    localStorage.removeItem(STORAGE_KEY)
+    setHasSeenOnboarding(false)
+  }
+
   return (
-    <OnboardingContext.Provider value={{ hasSeenOnboarding, markAsSeen }}>
+    <OnboardingContext.Provider value={{ hasSeenOnboarding, markAsSeen, replayOnboarding }}>
       {children}
     </OnboardingContext.Provider>
   )

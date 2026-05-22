@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useOnboarding } from '@/contexts/OnboardingContext'
 
 export default function SettingsPage() {
+  const { replayOnboarding } = useOnboarding()
   const [isEnglish, setIsEnglish] = useState(() => {
     if (typeof window === 'undefined') return false
     return localStorage.getItem('mathsnap_language') === 'en'
@@ -59,7 +61,10 @@ export default function SettingsPage() {
               <span className="text-[16px] text-[#0d0d0d]">Phiên bản</span>
               <span className="font-mono text-[14px] text-[#888888]">1.0.0</span>
             </div>
-            <button className="group flex h-[64px] w-full items-center justify-between border-b border-black/5 px-6 transition-colors hover:bg-[#fafafa] active:bg-black/5">
+            <button
+              onClick={replayOnboarding}
+              className="group flex h-[64px] w-full items-center justify-between border-b border-black/5 px-6 transition-colors hover:bg-[#fafafa] active:bg-black/5"
+            >
               <span className="text-[16px] text-[#0d0d0d]">Xem lại hướng dẫn</span>
               <ChevronRight className="size-5 text-[#888888] transition-colors group-hover:text-[#18E299]" />
             </button>

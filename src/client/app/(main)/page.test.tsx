@@ -1,8 +1,11 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
-const mockPush = vi.fn()
-const mockSetCapturedBlob = vi.fn()
+const { mockPush, mockSetCapturedBlob, mockToastError } = vi.hoisted(() => ({
+  mockPush: vi.fn(),
+  mockSetCapturedBlob: vi.fn(),
+  mockToastError: vi.fn(),
+}))
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
@@ -16,16 +19,17 @@ vi.mock('next/link', () => ({
 vi.mock('@/contexts/CaptureContext', () => ({
   useCaptureContext: () => ({ setCapturedBlob: mockSetCapturedBlob }),
 }))
-vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
+vi.mock('sonner', () => ({
+  toast: { error: mockToastError },
+}))
 
 import HomePage from './page'
-import { toast } from 'sonner'
 
 describe('HomePage', () => {
   beforeEach(() => vi.clearAllMocks())
   afterEach(() => vi.unstubAllGlobals())
 
-  it('renders Camera and Tải lên CTAs', async () => {
+  it('renders camera + upload + manual CTAs when camera available', async () => {
     vi.stubGlobal('navigator', { mediaDevices: {
       getUserMedia: vi.fn(),
       enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
@@ -33,6 +37,7 @@ describe('HomePage', () => {
     render(<HomePage />)
     expect(await screen.findByText('Chụp ảnh')).toBeTruthy()
     expect(screen.getByText('Tải lên')).toBeTruthy()
+    expect(screen.getByText('Nhập LaTeX')).toBeTruthy()
   })
 
   it('Camera CTA navigates to /camera', async () => {
@@ -45,32 +50,6 @@ describe('HomePage', () => {
     expect(mockPush).toHaveBeenCalledWith('/camera')
   })
 
-  it('Nhập LaTeX link navigates to /manual', () => {
-    render(<HomePage />)
-    const link = screen.getByRole('link', { name: /nhập latex/i })
-    expect(link.getAttribute('href')).toBe('/manual')
-  })
-
-  it('shows toast and no navigation when file > 2MB', async () => {
-    render(<HomePage />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    const bigFile = new File([new ArrayBuffer(3 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' })
-    Object.defineProperty(input, 'files', { value: [bigFile] })
-    fireEvent.change(input)
-    await waitFor(() => expect(toast.error).toHaveBeenCalled())
-    expect(mockPush).not.toHaveBeenCalledWith('/crop')
-  })
-
-  it('stores blob and navigates to /crop for valid file', async () => {
-    render(<HomePage />)
-    const input = document.querySelector('input[type="file"]') as HTMLInputElement
-    const validFile = new File([new ArrayBuffer(100 * 1024)], 'photo.jpg', { type: 'image/jpeg' })
-    Object.defineProperty(input, 'files', { value: [validFile] })
-    fireEvent.change(input)
-    await waitFor(() => expect(mockSetCapturedBlob).toHaveBeenCalled())
-    expect(mockPush).toHaveBeenCalledWith('/crop')
-  })
-
   it('hides Chụp ảnh CTA when no camera device, keeps upload/manual', async () => {
     vi.stubGlobal('navigator', { mediaDevices: {
       getUserMedia: vi.fn(),
@@ -79,6 +58,59 @@ describe('HomePage', () => {
     render(<HomePage />)
     await waitFor(() => expect(screen.queryByText('Chụp ảnh')).toBeNull())
     expect(screen.getByText('Tải lên')).toBeTruthy()
+    expect(screen.getByText('Nhập LaTeX')).toBeTruthy()
     expect((navigator.mediaDevices as { getUserMedia: ReturnType<typeof vi.fn> }).getUserMedia).not.toHaveBeenCalled()
+  })
+
+  it('Tải lên button triggers hidden file input click', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
+    render(<HomePage />)
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const clickSpy = vi.spyOn(fileInput, 'click')
+    fireEvent.click(await screen.findByText('Tải lên'))
+    expect(clickSpy).toHaveBeenCalled()
+  })
+
+  it('file >2MB shows toast.error and does not navigate', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
+    render(<HomePage />)
+    await screen.findByText('Tải lên')
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const bigFile = new File(['x'.repeat(3 * 1024 * 1024)], 'big.jpg', { type: 'image/jpeg' })
+    Object.defineProperty(bigFile, 'size', { value: 3 * 1024 * 1024 })
+    fireEvent.change(fileInput, { target: { files: [bigFile] } })
+    expect(mockToastError).toHaveBeenCalledWith('Ảnh không được vượt quá 2MB.')
+    expect(mockPush).not.toHaveBeenCalledWith('/crop')
+  })
+
+  it('valid file ≤2MB sets capturedBlob and navigates to /crop', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
+    render(<HomePage />)
+    await screen.findByText('Tải lên')
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+    const smallFile = new File(['hello'], 'small.jpg', { type: 'image/jpeg' })
+    fireEvent.change(fileInput, { target: { files: [smallFile] } })
+    expect(mockSetCapturedBlob).toHaveBeenCalledWith(smallFile)
+    expect(mockPush).toHaveBeenCalledWith('/crop')
+  })
+
+  it('Nhập LaTeX link points to /manual', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
+    render(<HomePage />)
+    await screen.findByText('Nhập LaTeX')
+    const link = screen.getByRole('link', { name: /Nhập LaTeX/ })
+    expect(link.getAttribute('href')).toBe('/manual')
   })
 })

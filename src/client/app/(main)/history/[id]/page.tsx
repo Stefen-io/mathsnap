@@ -19,7 +19,7 @@ export default function HistoryDetailPage() {
   const deviceId = useDeviceId()
   const [item, setItem] = useState<HistoryItem | null>(null)
   const [loading, setLoading] = useState(true)
-  const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]))
+  const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
   const [isBookmarked, setIsBookmarked] = useState(false)
 
   useEffect(() => {
@@ -28,6 +28,7 @@ export default function HistoryDetailPage() {
       .then(data => {
         setItem(data)
         setIsBookmarked(data.isBookmarked)
+        setOpenSteps(new Set(data.solutionSteps.map(s => s.index)))
         setLoading(false)
       })
       .catch(err => {

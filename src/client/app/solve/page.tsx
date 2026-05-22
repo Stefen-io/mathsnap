@@ -28,7 +28,7 @@ export default function SolvePage() {
   const deviceId = useDeviceId()
   const [pageState, setPageState] = useState<PageState>('loading')
   const [steps, setSteps] = useState<SolutionStep[]>([])
-  const [openSteps, setOpenSteps] = useState<Set<number>>(new Set([1]))
+  const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
   const [error, setError] = useState<ErrorInfo | null>(null)
   const [errorCode, setErrorCode] = useState<string | null>(null)
   const [historyItemId, setHistoryItemId] = useState<string | null>(null)
@@ -54,6 +54,7 @@ export default function SolvePage() {
       setSteps(result.solutionSteps)
       setHistoryItemId(result.id)
       setIsBookmarked(result.isBookmarked)
+      setOpenSteps(new Set(result.solutionSteps.map((s: SolutionStep) => s.index)))
       setPageState('success')
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'UNKNOWN'

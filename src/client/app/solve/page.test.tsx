@@ -1,74 +1,65 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
+const mockReplace = vi.fn()
 const mockBack = vi.fn()
 const mockPush = vi.fn()
-const mockReplace = vi.fn()
 
-vi.mock('next/navigation', () => ({ useRouter: () => ({ back: mockBack, push: mockPush, replace: mockReplace }) }))
-
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: mockReplace, back: mockBack, push: mockPush }),
+}))
 vi.mock('@/contexts/CaptureContext', () => ({
   useCaptureContext: vi.fn(),
 }))
-
 vi.mock('@/hooks/useDeviceId', () => ({
   useDeviceId: vi.fn(),
 }))
-
 vi.mock('@/lib/api', () => ({
   postSolve: vi.fn(),
   toggleBookmark: vi.fn(),
   ApiError: class ApiError extends Error {
-    code: string
-    retryable: boolean
+    code: string; retryable: boolean
     constructor(code: string, message: string, retryable: boolean) {
-      super(message)
-      this.name = 'ApiError'
-      this.code = code
-      this.retryable = retryable
+      super(message); this.code = code; this.retryable = retryable
     }
   },
 }))
-
+vi.mock('@/components/StepCard', () => ({
+  StepCard: ({ step, isOpen }: { step: { index: number; title: string }; isOpen: boolean }) => (
+    <div data-testid={`step-${step.index}`} data-open={isOpen}>Step: {step.title}</div>
+  ),
+}))
+vi.mock('@/components/KaTeXRenderer', () => ({
+  default: ({ latex }: { latex: string }) => <span data-testid="katex">{latex}</span>,
+}))
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
 
-vi.mock('@/components/KaTeXRenderer', () => ({
-  default: ({ latex }: { latex: string }) => <span>{latex}</span>,
-}))
-
-vi.mock('@/components/StepCard', () => ({
-  StepCard: ({ step }: { step: { title: string } }) => <div>Step: {step.title}</div>,
-}))
-
 import SolvePage from './page'
+import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
-import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
+import type { HistoryItem } from '@/types/history'
 
-const mockItem = {
-  id: 'item-123',
-  deviceId: 'device-456',
-  latex: '\\frac{1}{2}',
-  solutionSteps: [{ index: 1, title: 'Step 1', explanation: 'Explanation', isAnswer: false }],
-  language: 'vi' as const,
-  createdAt: '2024-01-01T00:00:00Z',
-  isBookmarked: false,
+const mockItem: HistoryItem = {
+  id: 'item-123', deviceId: 'device-456', latex: 'x^2',
+  solutionSteps: [{ index: 1, title: 'Bước 1', explanation: 'exp', isAnswer: false }],
+  language: 'vi', createdAt: '2026-05-01T10:00:00Z', isBookmarked: false,
 }
 
 const baseContext = {
-  ocrLatex: '\\frac{1}{2}',
-  solveResult: null,
-  setSolveResult: vi.fn(),
-  reset: vi.fn(),
   capturedBlob: null,
   croppedBlob: null,
+  ocrLatex: 'x^2',
+  solveResult: null,
   setCapturedBlob: vi.fn(),
   setCroppedBlob: vi.fn(),
   setOcrLatex: vi.fn(),
+  setSolveResult: vi.fn(),
+  reset: vi.fn(),
 }
 
 describe('SolvePage', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => { vi.clearAllMocks() })
 
   it('redirects to /camera when ocrLatex is null', () => {
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, ocrLatex: null })
@@ -83,13 +74,35 @@ describe('SolvePage', () => {
     render(<SolvePage />)
     expect(screen.getByText(/Đang phân tích bài toán/)).toBeTruthy()
   })
+
+  it('renders step cards after postSolve succeeds', async () => {
+    vi.mocked(postSolve).mockResolvedValueOnce(mockItem)
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+    render(<SolvePage />)
+    expect(await screen.findByTestId('step-1')).toBeTruthy()
+  })
+
+  it('starts with all steps expanded on success', async () => {
+    const item = { ...mockItem, solutionSteps: [
+      { index: 1, title: 'S1', explanation: '', isAnswer: false },
+      { index: 2, title: 'S2', explanation: '', isAnswer: true },
+    ] }
+    vi.mocked(postSolve).mockResolvedValueOnce(item)
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+    render(<SolvePage />)
+    const cards = await screen.findAllByTestId(/^step-/)
+    expect(cards).toHaveLength(2)
+    cards.forEach(c => expect(c.getAttribute('data-open')).toBe('true'))
+  })
 })
 
 describe('SolvePage error dispatch', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('shows Thử lại for LLM_TIMEOUT (retryable)', async () => {
-    vi.mocked(postSolve).mockRejectedValueOnce(
+    vi.mocked(postSolve).mockRejectedValue(
       new ApiError('LLM_TIMEOUT', 'Hệ thống đang bận. Vui lòng thử lại.', true)
     )
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
@@ -101,7 +114,7 @@ describe('SolvePage error dispatch', () => {
   })
 
   it('shows Nhập bài toán khác for LLM_CONTENT_POLICY', async () => {
-    vi.mocked(postSolve).mockRejectedValueOnce(
+    vi.mocked(postSolve).mockRejectedValue(
       new ApiError('LLM_CONTENT_POLICY', 'Bài toán không phù hợp.', false)
     )
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
@@ -113,7 +126,7 @@ describe('SolvePage error dispatch', () => {
   })
 
   it('shows no button for RATE_LIMITED daily (retryable=false)', async () => {
-    vi.mocked(postSolve).mockRejectedValueOnce(
+    vi.mocked(postSolve).mockRejectedValue(
       new ApiError('RATE_LIMITED', 'Bạn đã dùng hết lượt hôm nay.', false)
     )
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
@@ -129,8 +142,8 @@ describe('SolvePage bookmark button', () => {
   beforeEach(() => vi.clearAllMocks())
 
   it('calls toggleBookmark(true) when bookmark button is tapped', async () => {
-    vi.mocked(postSolve).mockResolvedValueOnce(mockItem as any)
-    vi.mocked(toggleBookmark).mockResolvedValueOnce({ ...mockItem, isBookmarked: true } as any)
+    vi.mocked(postSolve).mockResolvedValueOnce(mockItem)
+    vi.mocked(toggleBookmark).mockResolvedValueOnce({ ...mockItem, isBookmarked: true })
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
     vi.mocked(useDeviceId).mockReturnValue('device-456')
 

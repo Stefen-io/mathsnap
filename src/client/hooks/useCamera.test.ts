@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useCamera } from './useCamera'
 
@@ -82,5 +82,21 @@ describe('useCamera', () => {
       audio: false,
     })
     expect(result.current.facingMode).toBe('user')
+  })
+
+  it('sets cameraUnavailable on NotAllowedError', async () => {
+    const getUserMedia = vi.fn().mockRejectedValue(new DOMException('denied', 'NotAllowedError'))
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } })
+    const { result } = renderHook(() => useCamera())
+    await waitFor(() => expect(result.current.cameraUnavailable).toBe(true))
+  })
+
+  it('keeps cameraUnavailable false on success', async () => {
+    const stream = { getTracks: () => [] } as unknown as MediaStream
+    const getUserMedia = vi.fn().mockResolvedValue(stream)
+    vi.stubGlobal('navigator', { mediaDevices: { getUserMedia } })
+    const { result } = renderHook(() => useCamera())
+    await waitFor(() => expect(result.current.isReady).toBe(true))
+    expect(result.current.cameraUnavailable).toBe(false)
   })
 })

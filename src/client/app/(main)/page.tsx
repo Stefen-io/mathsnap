@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Camera, Upload, PenLine } from 'lucide-react'
@@ -14,6 +14,21 @@ export default function HomePage() {
   const router = useRouter()
   const { setCapturedBlob } = useCaptureContext()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [cameraAvailable, setCameraAvailable] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      if (!navigator.mediaDevices?.getUserMedia) { if (!cancelled) setCameraAvailable(false); return }
+      try {
+        const devices = await navigator.mediaDevices.enumerateDevices()
+        if (!cancelled) setCameraAvailable(devices.some(d => d.kind === 'videoinput'))
+      } catch {
+        if (!cancelled) setCameraAvailable(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
@@ -34,13 +49,15 @@ export default function HomePage() {
       </div>
 
       <div className="flex w-full max-w-xs flex-col gap-3">
-        <Button
-          className="h-12 w-full rounded-full bg-[#18E299] font-medium text-[#0d0d0d] hover:bg-[#0fa76e] hover:text-white"
-          onClick={() => router.push('/camera')}
-        >
-          <Camera className="mr-2 size-5" />
-          Chụp ảnh
-        </Button>
+        {cameraAvailable && (
+          <Button
+            className="h-12 w-full rounded-full bg-[#18E299] font-medium text-[#0d0d0d] hover:bg-[#0fa76e] hover:text-white"
+            onClick={() => router.push('/camera')}
+          >
+            <Camera className="mr-2 size-5" />
+            Chụp ảnh
+          </Button>
+        )}
 
         <Button
           variant="outline"

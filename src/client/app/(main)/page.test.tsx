@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { vi, describe, it, expect, beforeEach } from 'vitest'
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 
 const mockPush = vi.fn()
 const mockSetCapturedBlob = vi.fn()
@@ -23,16 +23,25 @@ import { toast } from 'sonner'
 
 describe('HomePage', () => {
   beforeEach(() => vi.clearAllMocks())
+  afterEach(() => vi.unstubAllGlobals())
 
-  it('renders Camera and Tải lên CTAs', () => {
+  it('renders Camera and Tải lên CTAs', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
     render(<HomePage />)
-    expect(screen.getByText('Chụp ảnh')).toBeTruthy()
+    expect(await screen.findByText('Chụp ảnh')).toBeTruthy()
     expect(screen.getByText('Tải lên')).toBeTruthy()
   })
 
-  it('Camera CTA navigates to /camera', () => {
+  it('Camera CTA navigates to /camera', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'videoinput' }]),
+    } })
     render(<HomePage />)
-    fireEvent.click(screen.getByText('Chụp ảnh'))
+    fireEvent.click(await screen.findByText('Chụp ảnh'))
     expect(mockPush).toHaveBeenCalledWith('/camera')
   })
 
@@ -60,5 +69,16 @@ describe('HomePage', () => {
     fireEvent.change(input)
     await waitFor(() => expect(mockSetCapturedBlob).toHaveBeenCalled())
     expect(mockPush).toHaveBeenCalledWith('/crop')
+  })
+
+  it('hides Chụp ảnh CTA when no camera device, keeps upload/manual', async () => {
+    vi.stubGlobal('navigator', { mediaDevices: {
+      getUserMedia: vi.fn(),
+      enumerateDevices: vi.fn().mockResolvedValue([{ kind: 'audioinput' }]),
+    } })
+    render(<HomePage />)
+    await waitFor(() => expect(screen.queryByText('Chụp ảnh')).toBeNull())
+    expect(screen.getByText('Tải lên')).toBeTruthy()
+    expect((navigator.mediaDevices as { getUserMedia: ReturnType<typeof vi.fn> }).getUserMedia).not.toHaveBeenCalled()
   })
 })

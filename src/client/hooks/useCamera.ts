@@ -10,9 +10,11 @@ export function useCamera() {
   const streamRef = useRef<MediaStream | null>(null)
   const [facingMode, setFacingMode] = useState<FacingMode>('environment')
   const [isReady, setIsReady] = useState(false)
+  const [cameraUnavailable, setCameraUnavailable] = useState(false)
 
   const startStream = useCallback(async (mode: FacingMode) => {
     streamRef.current?.getTracks().forEach(t => t.stop())
+    if (!navigator.mediaDevices?.getUserMedia) { setCameraUnavailable(true); return }
     let stream: MediaStream
     try {
       stream = await navigator.mediaDevices.getUserMedia({
@@ -20,10 +22,16 @@ export function useCamera() {
         audio: false,
       })
     } catch {
-      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      } catch {
+        setCameraUnavailable(true)
+        return
+      }
     }
     streamRef.current = stream
     if (videoRef.current) videoRef.current.srcObject = stream
+    setCameraUnavailable(false)
     setIsReady(true)
   }, [])
 
@@ -57,5 +65,5 @@ export function useCamera() {
     })
   }, [])
 
-  return { videoRef, canvasRef, facingMode, flipCamera, captureFrame, isReady }
+  return { videoRef, canvasRef, facingMode, flipCamera, captureFrame, isReady, cameraUnavailable }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { getHistory, getHistoryItem, deleteHistoryItem, toggleBookmark, ApiError } from './api'
+import { getHistory, getHistoryItem, deleteHistoryItem, toggleBookmark, postOcr, ApiError } from './api'
 
 const DEVICE = 'device-uuid-1234'
 const ITEM_ID = 'item-uuid-5678'
@@ -109,5 +109,36 @@ describe('toggleBookmark', () => {
       })
     )
     expect(result.isBookmarked).toBe(false)
+  })
+})
+
+describe('postOcr timeout', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    vi.stubGlobal('fetch', vi.fn())
+  })
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('throws OCR_TIMEOUT when the request aborts after 10s', async () => {
+    vi.mocked(fetch).mockImplementationOnce((_url, init) =>
+      new Promise((_resolve, reject) => {
+        ;(init!.signal as AbortSignal).addEventListener('abort', () =>
+          reject(new DOMException('aborted', 'AbortError')))
+      }))
+    const p = postOcr(new Blob(['x']), 'dev').catch((e: unknown) => e)
+    await vi.advanceTimersByTimeAsync(10000)
+    const err = await p
+    expect(err).toBeInstanceOf(ApiError)
+    expect(err).toMatchObject({ code: 'OCR_TIMEOUT', retryable: true })
+  })
+
+  it('clears the timer and resolves on a fast response', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ formulas: [{ latex: 'x', confidence: 1 }] }), { status: 200 }))
+    const res = await postOcr(new Blob(['x']), 'dev')
+    expect(res.formulas[0].latex).toBe('x')
   })
 })

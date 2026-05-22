@@ -40,11 +40,24 @@ async function handleError(res: Response): Promise<never> {
 export async function postOcr(blob: Blob, deviceId: string): Promise<OcrResponse> {
   const form = new FormData()
   form.append('image', blob, 'image.jpg')
-  const res = await fetch(`${BASE}/api/ocr`, {
-    method: 'POST',
-    headers: { 'X-Device-ID': deviceId },
-    body: form,
-  })
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 10000)
+  let res: Response
+  try {
+    res = await fetch(`${BASE}/api/ocr`, {
+      method: 'POST',
+      headers: { 'X-Device-ID': deviceId },
+      body: form,
+      signal: controller.signal,
+    })
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new ApiError('OCR_TIMEOUT', 'Nhận dạng quá lâu, vui lòng thử lại hoặc nhập thủ công.', true)
+    }
+    throw err
+  } finally {
+    clearTimeout(timer)
+  }
   if (!res.ok) await handleError(res)
   return res.json() as Promise<OcrResponse>
 }

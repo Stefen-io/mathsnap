@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 
 const mockPush = vi.fn()
@@ -127,5 +127,17 @@ describe('OcrPage', () => {
     render(<OcrPage />)
     expect(await screen.findByText('Không nhận diện được công thức trong ảnh.')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Chụp lại' })).toBeTruthy()
+  })
+
+  it('OCR_TIMEOUT shows Thử lại and Nhập thủ công', async () => {
+    const timeoutErr = new ApiError('OCR_TIMEOUT', 'Nhận dạng quá lâu...', true)
+    vi.mocked(postOcr).mockRejectedValue(timeoutErr)
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, croppedBlob: new Blob(['x']) })
+    vi.mocked(useDeviceId).mockReturnValue('dev')
+    render(<OcrPage />)
+    expect(await screen.findByRole('button', { name: 'Thử lại' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Nhập thủ công' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Nhập thủ công' }))
+    expect(mockPush).toHaveBeenCalledWith('/manual')
   })
 })

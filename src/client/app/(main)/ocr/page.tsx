@@ -94,7 +94,22 @@ export default function OcrPage() {
       {state === 'error' && errorInfo && (
         <div className="flex flex-col items-center gap-4 pt-12">
           <p className="text-center text-[15px] text-[#333]">{errorInfo.message}</p>
-          {errorInfo.retryable ? (
+          {errorInfo.code === 'OCR_TIMEOUT' ? (
+            <div className="flex w-full flex-col gap-3">
+              <button
+                onClick={runOcr}
+                className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
+              >
+                Thử lại
+              </button>
+              <button
+                onClick={() => router.push('/manual')}
+                className="h-12 w-full rounded-full border border-black/8 text-[15px] font-medium text-[#0d0d0d]"
+              >
+                Nhập thủ công
+              </button>
+            </div>
+          ) : errorInfo.retryable ? (
             <button
               onClick={runOcr}
               className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"

@@ -486,6 +486,266 @@ At the end, produce:
   questions — architectural decisions that have multiple valid answers)
 ```
 
+```
+/opsx:explore gap-analysis
+
+**Mục tiêu:** Trước khi propose G7 `audit-and-release`, cần biết chính xác
+delta giữa những gì đã spec/design và những gì thực sự có trong codebase.
+Output là một gap register — không implement gì, không suggest fix, chỉ đo.
+
+---
+
+## Chiều 1 — Specs vs Codebase
+
+### 1A. PRD Functional Requirements (FR)
+
+Đọc danh sách FR trong PRD hoặc từ PHASE_2.5_IMPLEMENTATION.md Section 4-5.
+Với mỗi FR, xác định trạng thái thực tế trong `src/client/` và `src/server/`:
+
+| FR | Tên | Spec nói gì | Codebase thực tế | Gap? |
+|---|---|---|---|---|
+| FR-1a | Camera input | getUserMedia, capture | /camera page | ? |
+| FR-1b | Upload from library | file picker | ? | ? |
+| FR-1c | Manual LaTeX input | text input + preview | /manual page | ? |
+| FR-1d | Crop & rotate | react-easy-crop | /crop page | ? |
+| FR-2 | OCR | POST /api/ocr | ? | ? |
+| FR-3 | Confirm formula | user edit before solve | /ocr page | ? |
+| FR-4 | Solve | POST /api/solve + LCEL | ? | ? |
+| FR-5 | Progressive Disclosure | 3-state per step (locked/open/answer) | /solve page | ? |
+| FR-6 | History | GET /api/history, swipe-to-delete | /history page | ? |
+| FR-7 | Bookmark | PATCH /api/history/:id/bookmark | ? | ? |
+| FR-8 | Bilingual | next-intl + language toggle + LLM prompt inject | /settings | ? |
+| FR-9 | Deploy | public URL live | vercel.json + Dockerfile | ? |
+| FR-10 | Rate limit | daily 20 + burst 5/min | backend | ? |
+| FR-11 | Persist | Supabase INSERT + deviceId scope | backend | ? |
+
+**Output mong muốn:** điền cột "Codebase thực tế" và "Gap?" cho mỗi dòng.
+Gap = None / Partial (mô tả cụ thể phần thiếu) / Missing.
+
+---
+
+### 1B. PRD Non-Functional Requirements (NFR)
+
+Kiểm tra từng NFR xem code có implement đúng không:
+
+| NFR | Spec | Verify trong code | Verdict |
+|---|---|---|---|
+| NFR-1 | FCP ≤ 1.5s, OCR ≤ 10s, LLM ≤ 15s | AbortController timeout ở frontend? ChatOpenAI(timeout=14) ở backend? | ? |
+| NFR-2 | Accessibility — WCAG 2.1 AA | aria-label, role attributes trong components | ? |
+| NFR-3 | Mobile-first, iOS Safari + Android Chrome | viewport meta, touch targets | ? |
+| NFR-5 | Camera fallback nếu không support | getUserMedia error handling → fallback UI | ? |
+| NFR-7 | Security — API key không lộ frontend | đã verify ở Explore ✅ | PASS |
+
+---
+
+### 1C. SYSTEM_DESIGN API Contracts (§4)
+
+Đọc `src/server/app/main.py` (hoặc router files). So sánh với SD §4.2–4.7:
+
+Kiểm tra từng endpoint:
+- `POST /api/ocr` — request schema, response schema, error codes handled?
+- `POST /api/solve` — LCEL chain invoke, Supabase INSERT, response camelCase?
+- `GET /api/history` — pagination params (page, limit, bookmarked), deviceId scope?
+- `GET /api/history/{id}` — exists?
+- `DELETE /api/history/{id}` — exists?
+- `PATCH /api/history/{id}/bookmark` — toggle logic correct?
+- `GET /health` — 200/503 readiness guard?
+
+**Đặc biệt kiểm tra:** SD §4.8 liệt kê 10 error codes. Đếm xem backend đang trả
+bao nhiêu error code trong số đó. List những code còn thiếu.
+
+---
+
+### 1D. SYSTEM_DESIGN Data Contract (§3.6 vs §3.7)
+
+SD §3.7 nói: FastAPI dùng `alias_generator=to_camel` để transform snake_case → camelCase.
+
+Verify:
+1. `model_config = ConfigDict(alias_generator=to_camel)` có trong models.py không?
+2. Frontend TypeScript types (`src/client/src/types/`) có match với SD §3.7 không?
+   - `isAnswer` (frontend) ↔ `is_answer` (backend)
+   - `solutionSteps` ↔ `solution_steps`
+   - `createdAt` ↔ `created_at`
+3. Nếu alias_generator thiếu → frontend nhận snake_case → parse fail → data mismatch
+
+---
+
+### 1E. Rate Limiting Implementation (SD §9.2)
+
+SD spec 2 lớp:
+- **Daily quota:** SQL COUNT từ history_items WHERE device_id = ? AND created_at > today
+- **Burst limit:** in-memory sliding window 5 requests/phút per device
+
+Verify trong backend code:
+- Cả 2 lớp đều implemented?
+- Apply cho cả `/api/ocr` VÀ `/api/solve` như SD §9.1 yêu cầu?
+- Error response khi daily hit vs burst hit có phân biệt được không (SD §8.5)?
+
+---
+
+## Chiều 2 — Figma vs Codebase
+
+Figma Make file key: `1GKzZ1kg7MriJrsZpba6XY`
+Source của Figma Make: React + Vite + Tailwind + shadcn/ui
+Production codebase: Next.js 16 App Router tại `src/client/`
+
+Fan-out subagents with task content and instructions below:
+
+```
+**IMPORTANT — Figma Make files require a non-obvious access pattern. Follow this
+exact decision tree instead of guessing:**
+
+**Step A:** Do NOT call `get_metadata(fileKey)` for Make files. It will fail with
+"not supported for Make files." Skip it entirely.
+
+**Step B:** Call `get_design_context(fileKey, nodeId: "0:1")`.
+Reasoning: Figma Make files always have `0:1` as the implicit root entry point —
+it is not a real design node but acts as the manifest. `get_design_context` with
+this nodeId returns a listing of all source files as MCP resource links
+(URIs like `file://figma/make/source/{fileKey}/path/to/file`).
+If `0:1` returns an error, try `1:0` as a fallback before giving up.
+```
+
+### 2A. Screen Coverage
+
+Figma Make có các screens sau. Với mỗi screen, tìm file tương ứng trong
+`src/client/src/app/` và xác định mức độ implement:
+
+| Screen | Figma file | Production file | Coverage |
+|---|---|---|---|
+| S-01 Home | screens/Home.tsx | app/page.tsx hoặc app/(home)/ | ? |
+| S-02 Camera | screens/Camera.tsx | app/camera/ | ? |
+| S-03 Crop | screens/Crop.tsx | app/crop/ | ? |
+| S-04 OCR Loading | screens/OCR.tsx | app/ocr/ | ? |
+| S-05 Formula Preview | (trong OCR.tsx?) | ? | ? |
+| S-06 Solution Loading | screens/Solution.tsx | app/solve/ | ? |
+| S-07 Solution Detail | screens/Solution.tsx | app/solve/ | ? |
+| S-08 History | screens/History.tsx | app/history/ | ? |
+| S-09 Bookmarks | screens/Bookmarks.tsx | app/bookmarks/ | ? |
+| S-10 Error State | (trong screens?) | ? | ? |
+| S-11 Manual LaTeX | screens/Manual.tsx | app/manual/ | ? |
+| S-12 Onboarding | OnboardingOverlay.tsx | ? | ? |
+| S-13 Settings | screens/Settings.tsx | app/settings/ | ? |
+| S-14 Problem Selector | screens/ProblemSelector.tsx | ❌ CUT per Cut Log | CUT |
+
+**Output:** điền Coverage = Full / Partial (note gì thiếu) / Missing / Cut.
+
+---
+
+### 2B. Component Delta
+
+Figma Make có các shared components. Verify từng cái trong production:
+
+| Figma component | Production equivalent | Gap |
+|---|---|---|
+| BottomNav.tsx | ? | ? |
+| OnboardingOverlay.tsx | ? | ? |
+| OnboardingStep.tsx | ? | ? |
+| PaginationDots.tsx | ? | ? |
+| KaTeXRenderer (mock service) | KaTeXRenderer.tsx + KaTeXRendererImpl.tsx | ? |
+
+---
+
+### 2C. Styling & Design Token Alignment
+
+Figma Make có `src/styles/theme.css` và `default_shadcn_theme.css`.
+Production có Tailwind + shadcn/ui config riêng.
+
+Kiểm tra 5 điểm sau (không cần pixel-perfect, chỉ cần functional match):
+
+1. **Color tokens:** Figma theme.css định nghĩa màu gì cho primary, background,
+   card? Production Tailwind config có match không?
+2. **Typography:** Figma dùng font gì? Production `layout.tsx` dùng Inter —
+   có match không?
+3. **Border radius:** Figma card/button radius bao nhiêu? Production shadcn config?
+4. **Spacing:** Bottom Nav height trong Figma vs production?
+5. **Dark mode:** Figma có dark mode variant không? Production implement không?
+
+Ghi verdict: **Visual Consistent** / **Minor diff** (acceptable) / **Major diff**
+(sẽ ảnh hưởng demo impression).
+
+---
+
+### 2D. Interaction Gaps
+
+Figma Mock Service (`src/services/mockOcrService.ts`) simulate các state nào?
+Production có implement đủ các state đó không?
+
+Tìm trong Figma: `mockOcrService.ts` — đọc xem nó mock những response type gì
+(success, no formula, low confidence, etc.). Đối chiếu với production error handling.
+
+---
+
+## Output Format
+
+Trả lời theo cấu trúc này — không thêm không bớt:
+
+```
+## Gap Register — [date]
+
+### Chiều 1: Specs vs Codebase
+
+#### 1A. FR Status
+[bảng FR với Gap filled in]
+
+**Summary:** X/14 FR = Full | Y = Partial | Z = Missing
+**M4 blockers (missing từ Hard Floor):** [list hoặc "None"]
+
+#### 1B. NFR Status
+[bảng NFR với verdict]
+
+#### 1C. API Contract Delta
+[list endpoint nào match / không match / thiếu]
+[list error codes nào đang thiếu trong backend]
+
+#### 1D. Data Contract
+[camelCase transform: PASS / FAIL + evidence]
+[TS types match: PASS / FAIL + cụ thể field nào sai]
+
+#### 1E. Rate Limiting
+[2-layer implement: YES/PARTIAL/NO]
+[apply đủ 2 endpoint: YES/NO]
+[error message phân biệt daily vs burst: YES/NO]
+
+---
+
+### Chiều 2: Figma vs Codebase
+
+#### 2A. Screen Coverage
+[bảng screens với Coverage filled in]
+**Summary:** X/13 screens = Full | Y = Partial | Z = Missing | 1 = Cut
+
+#### 2B. Component Delta
+[bảng components]
+
+#### 2C. Styling Alignment
+[5 điểm verdict]
+**Overall:** Visual Consistent / Minor diff / Major diff
+
+#### 2D. Interaction Gaps
+[mock service states vs production states]
+
+---
+
+### Overall Verdict
+
+**Ready to release (M4)?** YES / NO / CONDITIONAL
+**Blockers (nếu NO/CONDITIONAL):** [list cụ thể]
+**Accepted gaps (known, intentional):** [list]
+**Surprise gaps (không biết trước):** [list — đây là input quan trọng nhất cho G7 propose]
+```
+
+---
+
+## Constraints
+
+- Đọc code thực tế — không đoán, không assume
+- Nếu một file không tồn tại → ghi Missing, không tạo file
+- Nếu một feature partial implement → mô tả chính xác phần nào có, phần nào thiếu
+- Không đề xuất fix trong bước này — chỉ đo, chỉ report
+- Với Figma: đọc source files từ Figma Make bằng MCP tool, đừng đọc bằng cách fetch URL
+```
+
 ---
 
 ### 5.2 /opsx:propose — Lập kế hoạch

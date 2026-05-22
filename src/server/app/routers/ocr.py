@@ -24,6 +24,27 @@ async def ocr(
     image: UploadFile = File(...),
     device_id: UUID = Depends(validate_device_id),
 ) -> OcrResponse:
+    try:
+        return await _ocr_handler(request, image, device_id)
+    except HTTPException:
+        raise
+    except Exception:
+        logger.exception("ocr_internal_error device=%s...", str(device_id)[:8])
+        raise HTTPException(
+            status_code=500,
+            detail=ErrorResponse(
+                code=INTERNAL_ERROR,
+                message="An unexpected error occurred.",
+                retryable=True,
+            ).model_dump(),
+        )
+
+
+async def _ocr_handler(
+    request: Request,
+    image: UploadFile,
+    device_id: UUID,
+) -> OcrResponse:
     if image.content_type not in ALLOWED_MIME:
         raise HTTPException(
             status_code=400,

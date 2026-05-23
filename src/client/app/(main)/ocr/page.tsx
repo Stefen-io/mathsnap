@@ -36,6 +36,7 @@ export default function OcrPage() {
   const { lang } = useLanguage()
   const langRef = useRef(lang)
   langRef.current = lang
+  const ocrStartedRef = useRef(false)
 
   useEffect(() => {
     if (!croppedBlob) { setObjectUrl(null); return }
@@ -80,6 +81,9 @@ export default function OcrPage() {
   useEffect(() => {
     if (!croppedBlob) { router.push('/camera'); return }
     if (!deviceId) return
+    // No cleanup reset: intentional. Adding one would let StrictMode's remount bypass this guard.
+    if (ocrStartedRef.current) return
+    ocrStartedRef.current = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     runOcr()
   }, [croppedBlob, deviceId, runOcr, router])

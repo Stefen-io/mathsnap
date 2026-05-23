@@ -50,6 +50,12 @@ export default function CropPage() {
     }
   }
 
+  const RATIO_PRESETS = [
+    { label: '4:3', value: 4 / 3 },
+    { label: '16:9', value: 16 / 9 },
+    { label: '1:1', value: 1 },
+  ] as const
+
   if (!capturedBlob || !imageUrl) return null
 
   return (
@@ -67,6 +73,24 @@ export default function CropPage() {
           onZoomChange={setZoom}
           onCropComplete={onCropComplete}
         />
+      </div>
+
+      {/* Ratio selector */}
+      <div className="flex justify-center gap-2 py-3">
+        {RATIO_PRESETS.map((preset) => (
+          <button
+            key={preset.label}
+            onClick={() => handleAspectChange(preset.value)}
+            className={[
+              'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+              aspect === preset.value
+                ? 'border-[#18E299] text-[#18E299]'
+                : 'border-white/20 text-white/60',
+            ].join(' ')}
+          >
+            {preset.label}
+          </button>
+        ))}
       </div>
 
       {/* Action buttons */}

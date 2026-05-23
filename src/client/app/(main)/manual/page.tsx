@@ -4,11 +4,14 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, ArrowRight } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
+import { t } from '@/lib/i18n'
 
 export default function ManualPage() {
   const router = useRouter()
+  const { lang } = useLanguage()
   const { setOcrLatex } = useCaptureContext()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [latex, setLatex] = useState('')
@@ -41,11 +44,11 @@ export default function ManualPage() {
           <button
             onClick={() => router.back()}
             className="absolute left-6 flex size-11 items-center justify-center rounded-full text-[#0d0d0d] hover:bg-[#fafafa]"
-            aria-label="Quay lại"
+            aria-label={t[lang].manualAriaBack}
           >
             <ChevronLeft size={20} strokeWidth={2} aria-hidden="true" />
           </button>
-          <h1 className="text-[18px] font-semibold tracking-tight text-[#0d0d0d]">Nhập công thức</h1>
+          <h1 className="text-[18px] font-semibold tracking-tight text-[#0d0d0d]">{t[lang].manualTitle}</h1>
         </div>
 
         {/* Preview */}
@@ -55,7 +58,7 @@ export default function ManualPage() {
               <KaTeXRenderer latex={latex} />
             ) : (
               <span className="text-center text-[14px] text-[#888888]">
-                Bắt đầu nhập để xem preview
+                {t[lang].manualPreviewPlaceholder}
               </span>
             )}
           </div>
@@ -71,7 +74,7 @@ export default function ManualPage() {
             value={latex}
             onChange={e => setLatex(e.target.value)}
             className="h-[200px] w-full resize-none rounded-[16px] border border-black/10 bg-white p-4 font-mono text-[14px] text-[#0d0d0d] shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all focus:border-[#18E299] focus:outline-none focus:ring-1 focus:ring-[#18E299]"
-            placeholder="Nhập công thức LaTeX..."
+            placeholder={t[lang].manualInputPlaceholder}
           />
         </div>
       </div>
@@ -88,7 +91,7 @@ export default function ManualPage() {
               : 'bg-[#0d0d0d] text-white hover:opacity-90'
           }`}
         >
-          Xác nhận
+          {t[lang].manualSubmit}
           <ArrowRight size={20} strokeWidth={2} aria-hidden="true" />
         </motion.button>
       </div>

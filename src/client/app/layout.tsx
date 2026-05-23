@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { CaptureProvider } from "@/contexts/CaptureContext"
 import { OnboardingProvider } from "@/contexts/OnboardingContext"
 import { OnboardingOverlay } from "@/components/OnboardingOverlay"
+import { LanguageProvider } from "@/contexts/LanguageContext"
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'})
@@ -29,11 +30,13 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <CaptureProvider>
-            <OnboardingProvider>
-              {children}
-              <OnboardingOverlay />
-              <Toaster />
-            </OnboardingProvider>
+            <LanguageProvider>
+              <OnboardingProvider>
+                {children}
+                <OnboardingOverlay />
+                <Toaster />
+              </OnboardingProvider>
+            </LanguageProvider>
           </CaptureProvider>
         </ThemeProvider>
       </body>

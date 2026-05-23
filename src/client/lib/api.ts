@@ -53,7 +53,7 @@ export async function postOcr(blob: Blob, deviceId: string): Promise<OcrResponse
     })
   } catch (err) {
     if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new ApiError('OCR_TIMEOUT', 'Nhận dạng quá lâu, vui lòng thử lại hoặc nhập thủ công.', true)
+      throw new ApiError('OCR_TIMEOUT', 'OCR timed out. Please try again or enter manually.', true)
     }
     throw err
   } finally {

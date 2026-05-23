@@ -9,7 +9,8 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pix2tex.cli import LatexOCR
 
-logging.getLogger("app").setLevel(logging.INFO)
+LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
+logging.getLogger("app").setLevel(LOG_LEVEL)
 
 from app.schemas.errors import ErrorResponse, INVALID_REQUEST
 

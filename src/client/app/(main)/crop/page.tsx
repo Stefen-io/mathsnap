@@ -110,7 +110,7 @@ export default function CropPage() {
               </button>
             ))}
             <button
-              onClick={() => setIsCustom(true)}
+              onClick={() => { setIsCustom(true); setCustomW(''); setCustomH('') }}
               className="rounded-full border border-white/20 px-4 py-1.5 text-sm font-medium text-white/60 transition-colors"
             >
               Custom

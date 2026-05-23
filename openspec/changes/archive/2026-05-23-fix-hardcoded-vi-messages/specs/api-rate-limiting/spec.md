@@ -1,8 +1,5 @@
-# api-rate-limiting Specification
+## MODIFIED Requirements
 
-## Purpose
-TBD - created by archiving change backend-production-hardening. Update Purpose after archive.
-## Requirements
 ### Requirement: Burst limit blocks rapid requests per device
 
 The system SHALL maintain an in-memory sliding window per `device_id` and return `429 RATE_LIMITED` with `retryable: true` when a device sends more than `BURST_LIMIT_PER_MINUTE` (default 5) requests to `/api/ocr` or `/api/solve` within 60 seconds.
@@ -40,42 +37,3 @@ The system SHALL query `history_items` to count successful solves for the curren
 #### Scenario: Daily limit uses approximate OCR count
 - **WHEN** a device sends a `/api/ocr` request after already having 20 solve rows today
 - **THEN** server returns `429 RATE_LIMITED retryable=false` (approximation via history_items)
-
----
-
-### Requirement: Rate limit check order is burst-before-daily
-
-The system SHALL check burst limit before daily quota on every rate-limited endpoint so that the cheaper in-memory check runs first.
-
-#### Scenario: Burst check runs before daily SQL query
-- **WHEN** a device is simultaneously over burst limit AND over daily limit
-- **THEN** server returns `429 RATE_LIMITED retryable=true` (burst response, not daily)
-
----
-
-### Requirement: Rate limit events are logged
-
-The system SHALL emit a WARNING log entry for every request blocked by rate limiting, including the first 8 characters of `device_id`, limit type (`daily` or `burst`), and the endpoint path.
-
-#### Scenario: Burst block produces warning log
-- **WHEN** a request is blocked by burst limit
-- **THEN** a log line at WARNING level appears with `type=burst` and the endpoint name
-
-#### Scenario: Daily block produces warning log
-- **WHEN** a request is blocked by daily limit
-- **THEN** a log line at WARNING level appears with `type=daily` and the endpoint name
-
----
-
-### Requirement: Rate limits are configurable via environment variables
-
-The system SHALL read `DAILY_SOLVE_LIMIT` and `BURST_LIMIT_PER_MINUTE` from environment variables at startup, with defaults of `20` and `5` respectively.
-
-#### Scenario: Custom daily limit is respected
-- **WHEN** `DAILY_SOLVE_LIMIT=5` is set in the environment and a device has 5 rows today
-- **THEN** the 6th solve request returns `429 RATE_LIMITED retryable=false`
-
-#### Scenario: Custom burst limit is respected
-- **WHEN** `BURST_LIMIT_PER_MINUTE=2` is set and a device sends 2 requests within 60s
-- **THEN** the 3rd request returns `429 RATE_LIMITED retryable=true`
-

@@ -26,7 +26,7 @@ app = FastAPI(
     title="MathSnap API",
     description=(
         "MathSnap — AI-powered math tutor. "
-        "Nhận ảnh bài toán, trả về LaTeX (OCR) và lời giải từng bước (LLM)."
+        "Receives a math problem image, returns LaTeX (OCR) and step-by-step solution (LLM)."
     ),
     version="1.0.0",
 )
@@ -68,8 +68,8 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     "/health",
     summary="Readiness check",
     description=(
-        "Trả về `200 ok` khi pix2tex model đã load xong và sẵn sàng nhận request. "
-        "Trả về `503 model loading` trong thời gian khởi động (~15-30s)."
+        "Returns `200 ok` when the pix2tex model has loaded and is ready to accept requests. "
+        "Returns `503 model loading` during startup (~15-30s)."
     ),
     tags=["Infrastructure"],
 )

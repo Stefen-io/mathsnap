@@ -38,7 +38,7 @@ async def solve(
             status_code=429,
             detail=ErrorResponse(
                 code=RATE_LIMITED,
-                message="Bạn đang gửi quá nhanh. Vui lòng đợi 1 phút.",
+                message="You are sending requests too fast. Please wait 1 minute.",
                 retryable=True,
             ).model_dump(),
         )
@@ -51,7 +51,7 @@ async def solve(
             status_code=429,
             detail=ErrorResponse(
                 code=RATE_LIMITED,
-                message="Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai.",
+                message="You have reached today's limit. Please try again tomorrow.",
                 retryable=False,
             ).model_dump(),
         )

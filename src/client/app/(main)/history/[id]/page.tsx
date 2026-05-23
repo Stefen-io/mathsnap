@@ -3,10 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { ChevronLeft, Bookmark } from 'lucide-react'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { getHistoryItem, toggleBookmark, ApiError } from '@/lib/api'
 import { StepCard } from '@/components/StepCard'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
+import { t } from '@/lib/i18n'
 import type { HistoryItem } from '@/types/history'
 
 function Skeleton({ className = '' }: { className?: string }) {
@@ -17,6 +19,7 @@ export default function HistoryDetailPage() {
   const router = useRouter()
   const params = useParams<{ id: string }>()
   const deviceId = useDeviceId()
+  const { lang } = useLanguage()
   const [item, setItem] = useState<HistoryItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
@@ -76,11 +79,11 @@ export default function HistoryDetailPage() {
             <button
               onClick={() => router.back()}
               className="flex size-8 items-center justify-center rounded-full text-[#888] hover:bg-[#fafafa]"
-              aria-label="Quay lại"
+              aria-label={t[lang].detailAriaBack}
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
-            <h1 className="text-[16px] font-medium text-[#0d0d0d]">Lời giải</h1>
+            <h1 className="text-[16px] font-medium text-[#0d0d0d]">{t[lang].detailTitle}</h1>
           </header>
 
           <div className="border-b border-black/5 bg-[#fafafa] px-4 py-3">
@@ -94,6 +97,7 @@ export default function HistoryDetailPage() {
                 step={step}
                 isOpen={openSteps.has(step.index)}
                 onToggle={() => toggleStep(step.index)}
+                lang={lang}
               />
             ))}
           </main>
@@ -104,7 +108,7 @@ export default function HistoryDetailPage() {
               className={`flex size-12 shrink-0 items-center justify-center rounded-full transition-colors ${
                 isBookmarked ? 'bg-[#d4fae8] text-[#0fa76e]' : 'border border-black/5 text-[#0d0d0d]'
               }`}
-              aria-label="Đánh dấu"
+              aria-label={t[lang].detailAriaBookmark}
             >
               <Bookmark
                 className="size-5"
@@ -117,7 +121,7 @@ export default function HistoryDetailPage() {
               onClick={() => router.push('/')}
               className="flex h-12 flex-1 items-center justify-center rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              Bài mới
+              {t[lang].detailNewProblem}
             </button>
           </div>
         </>

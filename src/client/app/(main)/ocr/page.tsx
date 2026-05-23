@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
+import { t } from '@/lib/i18n'
 import { postOcr, ApiError } from '@/lib/api'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 
@@ -29,6 +31,7 @@ export default function OcrPage() {
   const [confidence, setConfidence] = useState(1)
   const [errorInfo, setErrorInfo] = useState<OcrErrorInfo | null>(null)
 
+  const { lang } = useLanguage()
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function OcrPage() {
       .then(res => {
         const formula = res.formulas[0]
         if (!formula) {
-          setErrorInfo({ code: 'OCR_NO_FORMULA', message: 'Không nhận diện được công thức trong ảnh.', retryable: false })
+          setErrorInfo({ code: 'OCR_NO_FORMULA', message: t[lang].ocrErrorNoFormula, retryable: false })
           setState('error')
           return
         }
@@ -57,11 +60,11 @@ export default function OcrPage() {
       .catch((err: unknown) => {
         const info: OcrErrorInfo = err instanceof ApiError
           ? { code: err.code, message: err.message, retryable: err.retryable }
-          : { code: 'UNKNOWN', message: 'Có lỗi xảy ra. Vui lòng thử lại.', retryable: false }
+          : { code: 'UNKNOWN', message: t[lang].ocrErrorGeneric, retryable: false }
         setErrorInfo(info)
         setState('error')
       })
-  }, [croppedBlob, deviceId])
+  }, [croppedBlob, deviceId, lang])
 
   useEffect(() => {
     if (!croppedBlob) { router.push('/camera'); return }
@@ -76,7 +79,7 @@ export default function OcrPage() {
     <div className="flex min-h-dvh flex-col px-6 pt-8 pb-[100px]">
       {state === 'ocr-loading' && (
         <div className="flex flex-col gap-4">
-          <p className="text-center text-xs text-gray-400">Đang nhận dạng công thức...</p>
+          <p className="text-center text-xs text-gray-400">{t[lang].ocrLoading}</p>
           <Skeleton className="h-[100px] w-full rounded-[16px]" />
           <div className="rounded-[16px] border border-black/5 p-5">
             <Skeleton className="mb-2 h-3 w-16" />
@@ -100,13 +103,13 @@ export default function OcrPage() {
                 onClick={runOcr}
                 className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
               >
-                Thử lại
+                {t[lang].ocrRetry}
               </button>
               <button
                 onClick={() => router.push('/manual')}
                 className="h-12 w-full rounded-full border border-black/8 text-[15px] font-medium text-[#0d0d0d]"
               >
-                Nhập thủ công
+                {t[lang].ocrManual}
               </button>
             </div>
           ) : errorInfo.retryable ? (
@@ -114,14 +117,14 @@ export default function OcrPage() {
               onClick={runOcr}
               className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              Thử lại
+              {t[lang].ocrRetry}
             </button>
           ) : (
             <button
               onClick={() => { reset(); router.push('/camera') }}
               className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              Chụp lại
+              {t[lang].ocrRecapture}
             </button>
           )}
         </div>
@@ -133,7 +136,7 @@ export default function OcrPage() {
             {objectUrl && (
               <img
                 src={objectUrl}
-                alt="Ảnh đã chụp"
+                alt={t[lang].ocrImageAlt}
                 className="mb-4 h-[100px] w-full rounded-[12px] object-cover"
               />
             )}
@@ -141,13 +144,13 @@ export default function OcrPage() {
               <KaTeXRenderer latex={editedLatex} />
             </div>
             <p className="mt-2 text-center text-[13px] text-[#888]">
-              Kiểm tra công thức đã chính xác chưa?
+              {t[lang].ocrCheckFormula}
             </p>
           </div>
 
           {confidence < 0.6 && (
             <div className="mb-3 rounded-full border border-amber-300 px-3 py-1 text-center text-[13px] text-amber-700">
-              Độ chính xác thấp — kiểm tra lại
+              {t[lang].ocrLowConfidence}
             </div>
           )}
 
@@ -162,14 +165,14 @@ export default function OcrPage() {
               onClick={() => { reset(); router.push('/camera') }}
               className="shrink-0 text-[15px] text-[#888] underline"
             >
-              Chụp lại
+              {t[lang].ocrRecapture}
             </button>
             <button
               disabled={!editedLatex.trim()}
               onClick={() => { setOcrLatex(editedLatex); router.push('/solve') }}
               className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white disabled:opacity-40"
             >
-              Giải bài này
+              {t[lang].ocrSolve}
               <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </div>

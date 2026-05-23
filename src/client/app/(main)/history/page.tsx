@@ -6,12 +6,15 @@ import { PenTool, Bookmark, Trash2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'motion/react'
 import { toast } from 'sonner'
 import { useDeviceId } from '@/hooks/useDeviceId'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { getHistory, deleteHistoryItem, toggleBookmark } from '@/lib/api'
+import { t } from '@/lib/i18n'
+import type { Lang } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import type { HistoryItem } from '@/types/history'
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('vi-VN', {
+function formatDate(iso: string, lang: Lang): string {
+  return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-US' : 'vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
@@ -20,6 +23,7 @@ function formatDate(iso: string): string {
 export default function HistoryPage() {
   const router = useRouter()
   const deviceId = useDeviceId()
+  const { lang } = useLanguage()
   const [items, setItems] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [swipedId, setSwipedId] = useState<string | null>(null)
@@ -38,7 +42,7 @@ export default function HistoryPage() {
     try {
       await deleteHistoryItem(id, deviceId)
     } catch {
-      toast.error('Không thể xóa bài toán. Vui lòng thử lại.')
+      toast.error(t[lang].historyToastDeleteError)
       getHistory(deviceId, { page: 1, limit: 20 }).then(r => setItems(r.items))
     }
   }
@@ -68,12 +72,12 @@ export default function HistoryPage() {
     return (
       <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-6">
         <PenTool className="size-12 stroke-1 text-[#e5e5e5]" />
-        <p className="text-[16px] text-[#666666]">Chưa có bài giải nào</p>
+        <p className="text-[16px] text-[#666666]">{t[lang].historyEmpty}</p>
         <button
           onClick={() => router.push('/camera')}
           className="text-[15px] font-medium text-[#18E299] hover:underline"
         >
-          Chụp bài toán đầu tiên →
+          {t[lang].historyEmptyCta}
         </button>
       </div>
     )
@@ -82,7 +86,7 @@ export default function HistoryPage() {
   return (
     <div className="flex flex-col bg-white">
       <div className="sticky top-0 z-10 border-b border-black/5 bg-white/80 px-6 py-6 backdrop-blur-md">
-        <h1 className="text-[24px] font-semibold tracking-[-0.24px] text-[#0d0d0d]">Lịch sử</h1>
+        <h1 className="text-[24px] font-semibold tracking-[-0.24px] text-[#0d0d0d]">{t[lang].historyTitle}</h1>
       </div>
 
       <div className="space-y-4 px-6 py-6 pb-[100px]">
@@ -99,7 +103,7 @@ export default function HistoryPage() {
               {/* Delete reveal background */}
               <div className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-[#d45656]">
                 <button
-                  aria-label="Xóa"
+                  aria-label={t[lang].historyAriaDelete}
                   onClick={() => handleDelete(item.id)}
                   className="flex size-full items-center justify-center text-white"
                 >
@@ -126,10 +130,10 @@ export default function HistoryPage() {
                   <div className="mb-2 line-clamp-1 text-[16px] text-[#0d0d0d]">
                     <KaTeXRenderer latex={item.latex} />
                   </div>
-                  <p className="text-[13px] text-[#888888]">{formatDate(item.createdAt)}</p>
+                  <p className="text-[13px] text-[#888888]">{formatDate(item.createdAt, lang)}</p>
                 </div>
                 <button
-                  aria-label={item.isBookmarked ? 'Bỏ lưu' : 'Lưu'}
+                  aria-label={item.isBookmarked ? t[lang].historyAriaUnsave : t[lang].historyAriaSave}
                   onClick={e => { e.stopPropagation(); void handleToggleBookmark(item) }}
                   className="flex size-10 shrink-0 items-center justify-center rounded-[8px] transition-colors hover:bg-black/5"
                 >

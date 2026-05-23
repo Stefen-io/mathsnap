@@ -7,12 +7,15 @@ import { Camera, Upload, PenLine } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { t } from '@/lib/i18n'
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024 // 2MB
 
 export default function HomePage() {
   const router = useRouter()
   const { setCapturedBlob } = useCaptureContext()
+  const { lang } = useLanguage()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [cameraAvailable, setCameraAvailable] = useState(true)
 
@@ -34,7 +37,7 @@ export default function HomePage() {
     const file = e.target.files?.[0]
     if (!file) return
     if (file.size > MAX_FILE_SIZE) {
-      toast.error('Ảnh không được vượt quá 2MB.')
+      toast.error(t[lang].homeToastFileTooLarge)
       return
     }
     setCapturedBlob(file)
@@ -45,7 +48,7 @@ export default function HomePage() {
     <div className="flex min-h-dvh flex-col items-center justify-center gap-8 px-6">
       <div className="text-center">
         <h1 className="text-2xl font-semibold tracking-tight text-[#0d0d0d]">MathSnap</h1>
-        <p className="mt-2 text-sm text-gray-500">Chụp ảnh bài toán, nhận lời giải từng bước</p>
+        <p className="mt-2 text-sm text-gray-500">{t[lang].homeSubtitle}</p>
       </div>
 
       <div className="flex w-full max-w-xs flex-col gap-3">
@@ -55,7 +58,7 @@ export default function HomePage() {
             onClick={() => router.push('/camera')}
           >
             <Camera className="mr-2 size-5" />
-            Chụp ảnh
+            {t[lang].homeCapture}
           </Button>
         )}
 
@@ -65,7 +68,7 @@ export default function HomePage() {
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="mr-2 size-5" />
-          Tải lên
+          {t[lang].homeUpload}
         </Button>
 
         <input
@@ -81,7 +84,7 @@ export default function HomePage() {
           className="flex h-12 w-full items-center justify-center gap-2 rounded-full text-[15px] font-medium text-[#666666] transition-colors hover:text-[#18E299]"
         >
           <PenLine className="size-4" />
-          Nhập LaTeX
+          {t[lang].homeManual}
         </Link>
       </div>
     </div>

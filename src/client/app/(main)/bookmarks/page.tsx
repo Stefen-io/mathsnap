@@ -7,10 +7,13 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { getHistory, toggleBookmark } from '@/lib/api'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { t } from '@/lib/i18n'
 import type { HistoryItem } from '@/types/history'
+import type { Lang } from '@/lib/i18n'
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('vi-VN', {
+function formatDate(iso: string, lang: Lang): string {
+  return new Date(iso).toLocaleDateString(lang === 'en' ? 'en-US' : 'vi-VN', {
     day: '2-digit', month: '2-digit', year: 'numeric',
     hour: '2-digit', minute: '2-digit',
   })
@@ -19,6 +22,7 @@ function formatDate(iso: string): string {
 export default function BookmarksPage() {
   const router = useRouter()
   const deviceId = useDeviceId()
+  const { lang } = useLanguage()
   const [items, setItems] = useState<HistoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [swipedId, setSwipedId] = useState<string | null>(null)
@@ -49,7 +53,7 @@ export default function BookmarksPage() {
     return (
       <div className="flex min-h-[60dvh] flex-col items-center justify-center gap-4 px-6">
         <Bookmark className="size-12 stroke-1 text-[#e5e5e5]" />
-        <p className="text-[16px] text-[#666666]">Chưa có bài nào được lưu</p>
+        <p className="text-[16px] text-[#666666]">{t[lang].bookmarksEmpty}</p>
       </div>
     )
   }
@@ -57,7 +61,7 @@ export default function BookmarksPage() {
   return (
     <div className="flex flex-col bg-white">
       <div className="sticky top-0 z-10 border-b border-black/5 bg-white/80 px-6 py-6 backdrop-blur-md">
-        <h1 className="text-[24px] font-semibold tracking-[-0.24px] text-[#0d0d0d]">Bookmark</h1>
+        <h1 className="text-[24px] font-semibold tracking-[-0.24px] text-[#0d0d0d]">{t[lang].bookmarksTitle}</h1>
       </div>
 
       <div className="space-y-4 px-6 py-6 pb-[100px]">
@@ -73,7 +77,7 @@ export default function BookmarksPage() {
             >
               <div className="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-[#d45656]">
                 <button
-                  aria-label="Bỏ lưu"
+                  aria-label={t[lang].bookmarksAriaUnsave}
                   onClick={() => handleRemoveBookmark(item.id)}
                   className="flex size-full items-center justify-center text-white"
                 >
@@ -99,10 +103,10 @@ export default function BookmarksPage() {
                   <div className="mb-2 line-clamp-1 text-[16px] text-[#0d0d0d]">
                     <KaTeXRenderer latex={item.latex} />
                   </div>
-                  <p className="text-[13px] text-[#888888]">{formatDate(item.createdAt)}</p>
+                  <p className="text-[13px] text-[#888888]">{formatDate(item.createdAt, lang)}</p>
                 </div>
                 <button
-                  aria-label="Bỏ lưu"
+                  aria-label={t[lang].bookmarksAriaUnsave}
                   onClick={e => { e.stopPropagation(); void handleRemoveBookmark(item.id) }}
                   className="flex size-10 shrink-0 items-center justify-center rounded-[8px] transition-colors hover:bg-black/5"
                 >

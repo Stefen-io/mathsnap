@@ -3,18 +3,21 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Home, Clock, Bookmark, Settings } from 'lucide-react'
-
-const TABS = [
-  { href: '/', label: 'Trang chủ', icon: Home },
-  { href: '/history', label: 'Lịch sử', icon: Clock },
-  { href: '/bookmarks', label: 'Bookmark', icon: Bookmark },
-  { href: '/settings', label: 'Cài đặt', icon: Settings },
-] as const
+import { useLanguage } from '@/contexts/LanguageContext'
+import { t } from '@/lib/i18n'
 
 const CAPTURE_ROUTES = ['/camera', '/crop', '/ocr']
 
 export default function BottomNav() {
   const pathname = usePathname()
+  const { lang } = useLanguage()
+
+  const TABS = [
+    { href: '/', label: t[lang].navHome, icon: Home },
+    { href: '/history', label: t[lang].navHistory, icon: Clock },
+    { href: '/bookmarks', label: t[lang].navBookmarks, icon: Bookmark },
+    { href: '/settings', label: t[lang].navSettings, icon: Settings },
+  ] as const
   if (CAPTURE_ROUTES.some(r => pathname.startsWith(r))) return null
 
   return (

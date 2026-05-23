@@ -6,6 +6,8 @@ import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { getCroppedImg } from '@/lib/getCroppedImg'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { t } from '@/lib/i18n'
 
 const RATIO_PRESETS = [
   { label: '4:3', value: 4 / 3 },
@@ -16,6 +18,7 @@ const RATIO_PRESETS = [
 export default function CropPage() {
   const router = useRouter()
   const { capturedBlob, setCroppedBlob } = useCaptureContext()
+  const { lang } = useLanguage()
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
@@ -154,18 +157,18 @@ export default function CropPage() {
       {/* Action buttons */}
       <div className="flex gap-3 px-6 py-6">
         <button
-          aria-label="Hủy"
+          aria-label={t[lang].cropCancel}
           onClick={() => router.push('/camera')}
           className="flex-1 rounded-full border border-white/30 py-3 text-sm font-medium text-white transition-colors hover:border-white/50"
         >
-          Hủy
+          {t[lang].cropCancel}
         </button>
         <button
-          aria-label="Xác nhận"
+          aria-label={t[lang].cropConfirm}
           onClick={handleConfirm}
           className="flex-1 rounded-full bg-[#18E299] py-3 text-sm font-medium text-[#0d0d0d] transition-colors hover:bg-[#0fa76e]"
         >
-          Xác nhận
+          {t[lang].cropConfirm}
         </button>
       </div>
     </div>

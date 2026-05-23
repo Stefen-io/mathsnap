@@ -20,6 +20,9 @@ export default function CropPage() {
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
   const [aspect, setAspect] = useState<number>(4 / 3)
+  const [isCustom, setIsCustom] = useState(false)
+  const [customW, setCustomW] = useState('')
+  const [customH, setCustomH] = useState('')
 
   const imageUrl = useMemo(
     () => (capturedBlob ? URL.createObjectURL(capturedBlob) : null),
@@ -42,6 +45,11 @@ export default function CropPage() {
     setAspect(newAspect)
     setCrop({ x: 0, y: 0 })
     setZoom(1)
+    setIsCustom(false)
+  }
+
+  function handleCustomApply() {
+    handleAspectChange(parseFloat(customW) / parseFloat(customH))
   }
 
   async function handleConfirm() {
@@ -55,6 +63,12 @@ export default function CropPage() {
       URL.revokeObjectURL(freshUrl)
     }
   }
+
+  const isApplyDisabled =
+    isNaN(parseFloat(customW)) ||
+    isNaN(parseFloat(customH)) ||
+    parseFloat(customW) <= 0 ||
+    parseFloat(customH) <= 0
 
   if (!capturedBlob || !imageUrl) return null
 

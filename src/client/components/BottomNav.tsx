@@ -15,7 +15,7 @@ export default function BottomNav() {
   const TABS = [
     { href: '/', label: t[lang].navHome, icon: Home },
     { href: '/history', label: t[lang].navHistory, icon: Clock },
-    { href: '/bookmarks', label: 'Bookmark', icon: Bookmark },
+    { href: '/bookmarks', label: t[lang].navBookmarks, icon: Bookmark },
     { href: '/settings', label: t[lang].navSettings, icon: Settings },
   ] as const
   if (CAPTURE_ROUTES.some(r => pathname.startsWith(r))) return null

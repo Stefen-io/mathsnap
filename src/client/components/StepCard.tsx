@@ -3,14 +3,16 @@
 import { AnimatePresence, motion } from 'motion/react'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import type { SolutionStep } from '@/types/history'
+import { t, type Lang } from '@/lib/i18n'
 
 interface StepCardProps {
   step: SolutionStep
   isOpen: boolean
   onToggle: () => void
+  lang: Lang
 }
 
-export function StepCard({ step, isOpen, onToggle }: StepCardProps) {
+export function StepCard({ step, isOpen, onToggle, lang }: StepCardProps) {
   return (
     <div
       className={`overflow-hidden rounded-[16px] border bg-white shadow-[0_2px_4px_rgba(0,0,0,0.03)] ${
@@ -30,7 +32,7 @@ export function StepCard({ step, isOpen, onToggle }: StepCardProps) {
               : 'border border-black/5 bg-[#fafafa] text-[#666]'
           }`}
         >
-          {step.isAnswer ? 'Đáp án' : `Bước ${step.index}`}
+          {step.isAnswer ? t[lang].stepAnswer : `${t[lang].stepLabel} ${step.index}`}
         </span>
         <span className="flex-1 text-[15px] font-medium text-[#0d0d0d]">{step.title}</span>
         <svg

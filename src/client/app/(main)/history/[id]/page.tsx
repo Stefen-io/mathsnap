@@ -97,6 +97,7 @@ export default function HistoryDetailPage() {
                 step={step}
                 isOpen={openSteps.has(step.index)}
                 onToggle={() => toggleStep(step.index)}
+                lang={lang}
               />
             ))}
           </main>

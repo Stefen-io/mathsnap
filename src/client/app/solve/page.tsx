@@ -8,7 +8,7 @@ import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
-import { t } from '@/lib/i18n'
+import { t, type Lang } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import { StepCard } from '@/components/StepCard'
 import type { SolutionStep } from '@/types/history'
@@ -51,7 +51,8 @@ export default function SolvePage() {
     setError(null)
     setErrorCode(null)
     try {
-      const language = (localStorage.getItem('mathsnap_language') as 'vi' | 'en') ?? 'vi'
+      const stored = localStorage.getItem('mathsnap_language')
+      const language: Lang = stored === 'en' ? 'en' : 'vi'
       const result = await postSolve(ocrLatex, deviceId, language)
       setSolveResult(result)
       setSteps(result.solutionSteps)
@@ -140,6 +141,7 @@ export default function SolvePage() {
                 step={step}
                 isOpen={openSteps.has(step.index)}
                 onToggle={() => toggleStep(step.index)}
+                lang={lang}
               />
             ))}
           </main>

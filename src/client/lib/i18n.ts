@@ -4,6 +4,7 @@ const vi = {
   // Nav
   navHome: 'Trang chủ',
   navHistory: 'Lịch sử',
+  navBookmarks: 'Bookmark',
   navSettings: 'Cài đặt',
   // Home
   homeSubtitle: 'Chụp ảnh bài toán, nhận lời giải từng bước',
@@ -60,6 +61,9 @@ const vi = {
   settingsReplayOnboarding: 'Xem lại hướng dẫn',
   settingsContactSupport: 'Liên hệ hỗ trợ',
   settingsTerms: 'Điều khoản sử dụng',
+  // Step card
+  stepAnswer: 'Đáp án',
+  stepLabel: 'Bước',
   // Solve
   solveLoading: 'Đang phân tích bài toán',
   solveErrorGeneric: 'Không thể tạo lời giải. Vui lòng thử lại.',
@@ -87,6 +91,7 @@ const en: typeof vi = {
   // Nav
   navHome: 'Home',
   navHistory: 'History',
+  navBookmarks: 'Bookmarks',
   navSettings: 'Settings',
   // Home
   homeSubtitle: 'Snap a problem, get step-by-step solutions',
@@ -143,6 +148,9 @@ const en: typeof vi = {
   settingsReplayOnboarding: 'View tutorial',
   settingsContactSupport: 'Contact support',
   settingsTerms: 'Terms of use',
+  // Step card
+  stepAnswer: 'Answer',
+  stepLabel: 'Step',
   // Solve
   solveLoading: 'Analysing problem',
   solveErrorGeneric: 'Unable to generate solution. Please try again.',

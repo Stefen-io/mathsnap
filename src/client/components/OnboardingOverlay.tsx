@@ -99,7 +99,7 @@ export function OnboardingOverlay() {
         </div>
         <button
           onClick={isLastStep ? markAsSeen : () => setStep(s => s + 1)}
-          className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
+          className="h-12 w-full max-w-sm rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white shadow-[0px_1px_2px_rgba(0,0,0,0.06)]"
         >
           {isLastStep ? t[lang].onboardingStart : t[lang].onboardingNext}
         </button>

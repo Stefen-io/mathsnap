@@ -58,12 +58,15 @@ async def solve(
     # ─────────────────────────────────────────────────────────────────────
 
     latex = rate_limit.sanitize_latex(body.latex)
+    logger.info("solve_start device=%s... lang=%s latex_len=%d",
+                str(device_id)[:8], body.language, len(latex))
 
     try:
         solution = await solver_service.solver_chain.ainvoke(
             {"latex": latex, "language": LANGUAGE_NAMES.get(body.language, body.language)}
         )
-    except OutputParserException:
+    except OutputParserException as e:
+        logger.warning("solve_fail reason=invalid_response detail=%s", e)
         raise HTTPException(
             status_code=502,
             detail=ErrorResponse(
@@ -75,6 +78,7 @@ async def solve(
     except Exception as e:
         err = str(e).lower() + type(e).__name__.lower()
         if "timeout" in err or "readtimeout" in err or "timeouterror" in err:
+            logger.warning("solve_fail reason=timeout exc=%s", type(e).__name__)
             raise HTTPException(
                 status_code=504,
                 detail=ErrorResponse(
@@ -84,6 +88,7 @@ async def solve(
                 ).model_dump(),
             )
         if "content_filter" in err or "content policy" in err:
+            logger.warning("solve_fail reason=content_policy exc=%s", type(e).__name__)
             raise HTTPException(
                 status_code=502,
                 detail=ErrorResponse(
@@ -92,6 +97,7 @@ async def solve(
                     retryable=False,
                 ).model_dump(),
             )
+        logger.exception("solve_fail reason=unexpected exc=%s", type(e).__name__)
         raise HTTPException(
             status_code=500,
             detail=ErrorResponse(

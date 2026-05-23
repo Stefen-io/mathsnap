@@ -1,8 +1,13 @@
+import logging
 import os
+import time
+
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 
 from app.schemas.solution import Solution
+
+logger = logging.getLogger(__name__)
 
 LANGUAGE_NAMES = {"vi": "Vietnamese", "en": "English"}
 
@@ -40,7 +45,14 @@ class _LazyChain:
         global _solver_chain
         if _solver_chain is None:
             _solver_chain = _build_chain()
-        return await _solver_chain.ainvoke(*args, **kwargs)
+        t0 = time.monotonic()
+        try:
+            result = await _solver_chain.ainvoke(*args, **kwargs)
+            logger.info("llm_ok latency=%.2fs steps=%d", time.monotonic() - t0, len(result.steps))
+            return result
+        except Exception:
+            logger.warning("llm_error latency=%.2fs", time.monotonic() - t0)
+            raise
 
 
 solver_chain = _LazyChain()

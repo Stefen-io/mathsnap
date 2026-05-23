@@ -1,3 +1,4 @@
+import logging
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -7,6 +8,8 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pix2tex.cli import LatexOCR
+
+logging.getLogger("app").setLevel(logging.INFO)
 
 from app.schemas.errors import ErrorResponse, INVALID_REQUEST
 

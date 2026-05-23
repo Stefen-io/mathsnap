@@ -30,7 +30,7 @@ _solver_chain = None
 def _build_chain():
     llm = ChatOpenAI(
         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-        timeout=14,				# ← chờ tối đa 14 giây
+        timeout=60,				# ← chờ tối đa 60 giây
         max_retries=1,		# ← retry 1 lần nếu lỗi
         temperature=0,
     ).with_structured_output(Solution, method="json_mode")

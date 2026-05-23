@@ -38,6 +38,7 @@ const vi = {
   // OCR
   ocrLoading: 'Đang nhận dạng công thức...',
   ocrErrorNoFormula: 'Không nhận diện được công thức trong ảnh.',
+  ocrErrorTimeout: 'Nhận dạng quá lâu, vui lòng thử lại hoặc nhập thủ công.',
   ocrErrorGeneric: 'Có lỗi xảy ra. Vui lòng thử lại.',
   ocrRetry: 'Thử lại',
   ocrManual: 'Nhập thủ công',
@@ -125,6 +126,7 @@ const en: typeof vi = {
   // OCR
   ocrLoading: 'Recognising formula...',
   ocrErrorNoFormula: 'No formula detected in the image.',
+  ocrErrorTimeout: 'Recognition timed out. Please retry or enter manually.',
   ocrErrorGeneric: 'An error occurred. Please try again.',
   ocrRetry: 'Retry',
   ocrManual: 'Enter manually',

@@ -59,7 +59,7 @@ export default function OcrPage() {
       })
       .catch((err: unknown) => {
         const info: OcrErrorInfo = err instanceof ApiError
-          ? { code: err.code, message: err.message, retryable: err.retryable }
+          ? { code: err.code, message: err.code === 'OCR_TIMEOUT' ? t[lang].ocrErrorTimeout : err.message, retryable: err.retryable }
           : { code: 'UNKNOWN', message: t[lang].ocrErrorGeneric, retryable: false }
         setErrorInfo(info)
         setState('error')

@@ -75,7 +75,7 @@ describe('OcrPage', () => {
 
   it('shows Thử lại button for RATE_LIMITED burst (retryable)', async () => {
     vi.mocked(postOcr).mockRejectedValueOnce(
-      Object.assign(new ApiError('RATE_LIMITED', 'Bạn đang gửi quá nhanh. Vui lòng đợi 1 phút.', true), { name: 'ApiError' })
+      Object.assign(new ApiError('RATE_LIMITED', 'You are sending requests too fast. Please wait 1 minute.', true), { name: 'ApiError' })
     )
     vi.mocked(useCaptureContext).mockReturnValue({
       ...baseContext,
@@ -90,7 +90,7 @@ describe('OcrPage', () => {
 
   it('shows Chụp lại button for RATE_LIMITED daily (non-retryable)', async () => {
     vi.mocked(postOcr).mockRejectedValueOnce(
-      Object.assign(new ApiError('RATE_LIMITED', 'Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai.', false), { name: 'ApiError' })
+      Object.assign(new ApiError('RATE_LIMITED', 'You have reached today\'s limit. Please try again tomorrow.', false), { name: 'ApiError' })
     )
     vi.mocked(useCaptureContext).mockReturnValue({
       ...baseContext,

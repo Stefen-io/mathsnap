@@ -1,12 +1,4 @@
-# Spec: Crop Ratio Selector
-
-## Purpose
-
-Allows users to select a preset aspect ratio (4:3, 16:9, or 1:1) or enter a custom W:H ratio on the crop screen before confirming a photo crop. The selector is displayed between the cropper area and the action buttons, and switching ratios immediately updates the cropper state.
-
----
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Preset ratio selector displayed on crop screen
 
@@ -58,6 +50,8 @@ selects a preset, reset crop position and zoom level, and exit custom mode if ac
   tapped preset SHALL appear selected, and the cropper SHALL update to that preset's ratio
 
 ---
+
+## ADDED Requirements
 
 ### Requirement: Custom ratio inline input mode
 
@@ -118,19 +112,3 @@ with no button selected as active preset.
 - **WHEN** the user applies a custom ratio, positions the crop box, and taps Xác nhận
 - **THEN** `getCroppedImg` SHALL receive the pixel-accurate `croppedAreaPixels` for
   the custom ratio and return a correctly sized blob
-
----
-
-### Requirement: Crop confirmation works with all presets
-
-The crop confirmation flow MUST produce a correctly cropped image for all 3 preset ratios.
-
-#### Scenario: Confirm crop at 16:9
-
-- **WHEN** the user selects 16:9, positions the crop box, and taps Xác nhận
-- **THEN** `getCroppedImg` SHALL receive the pixel-accurate `croppedAreaPixels` for the 16:9 crop and return a correctly sized blob
-
-#### Scenario: Confirm crop at 1:1
-
-- **WHEN** the user selects 1:1, positions the crop box, and taps Xác nhận
-- **THEN** `getCroppedImg` SHALL receive the pixel-accurate `croppedAreaPixels` for the 1:1 crop and return a correctly sized blob

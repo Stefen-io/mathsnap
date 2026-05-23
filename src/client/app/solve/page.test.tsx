@@ -127,12 +127,12 @@ describe('SolvePage error dispatch', () => {
 
   it('shows no button for RATE_LIMITED daily (retryable=false)', async () => {
     vi.mocked(postSolve).mockRejectedValue(
-      new ApiError('RATE_LIMITED', 'Bạn đã dùng hết lượt hôm nay.', false)
+      new ApiError('RATE_LIMITED', 'You have reached today\'s limit. Please try again tomorrow.', false)
     )
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
     vi.mocked(useDeviceId).mockReturnValue('test-device')
     render(<SolvePage />)
-    expect(await screen.findByText('Bạn đã dùng hết lượt hôm nay.')).toBeTruthy()
+    expect(await screen.findByText('Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Thử lại' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Nhập bài toán khác' })).toBeNull()
   })

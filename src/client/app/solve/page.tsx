@@ -62,13 +62,18 @@ export default function SolvePage() {
       setPageState('success')
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'UNKNOWN'
-      const info: ErrorInfo = err instanceof ApiError
-        ? { message: err.message, retryable: err.retryable }
-        : { message: t[lang].solveErrorGeneric, retryable: true }
+      const localizedMessage: string = err instanceof ApiError
+        ? (err.code === 'RATE_LIMITED'
+            ? (err.retryable ? t[lang].rateLimitBurst : t[lang].rateLimitDaily)
+            : err.message)
+        : t[lang].solveErrorGeneric
       setErrorCode(code)
-      setError(info)
+      setError({
+        message: localizedMessage,
+        retryable: err instanceof ApiError ? err.retryable : true,
+      })
       setPageState('error')
-      toast.error(err instanceof ApiError ? err.message : t[lang].solveToastError)
+      toast.error(err instanceof ApiError ? localizedMessage : t[lang].solveToastError)
     }
   }
 

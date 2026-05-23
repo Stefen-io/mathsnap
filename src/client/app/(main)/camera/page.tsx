@@ -4,11 +4,14 @@ import { useRouter } from 'next/navigation'
 import { RefreshCw } from 'lucide-react'
 import { useCamera } from '@/hooks/useCamera'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { t } from '@/lib/i18n'
 
 export default function CameraPage() {
   const router = useRouter()
   const { videoRef, canvasRef, flipCamera, captureFrame, isReady } = useCamera()
   const { setCapturedBlob } = useCaptureContext()
+  const { lang } = useLanguage()
 
   async function handleCapture() {
     const blob = await captureFrame()
@@ -36,7 +39,7 @@ export default function CameraPage() {
 
         {/* Shutter */}
         <button
-          aria-label="Chụp ảnh"
+          aria-label={t[lang].cameraAriaShutter}
           disabled={!isReady}
           onClick={handleCapture}
           className="size-16 rounded-full border-4 border-white bg-white/30 transition-transform active:scale-95 disabled:opacity-40"
@@ -44,7 +47,7 @@ export default function CameraPage() {
 
         {/* Flip camera */}
         <button
-          aria-label="Xoay camera"
+          aria-label={t[lang].cameraAriaFlip}
           onClick={flipCamera}
           className="flex size-10 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
         >

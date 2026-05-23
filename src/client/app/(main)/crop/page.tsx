@@ -91,20 +91,59 @@ export default function CropPage() {
 
       {/* Ratio selector */}
       <div className="flex justify-center gap-2 py-3">
-        {RATIO_PRESETS.map((preset) => (
-          <button
-            key={preset.label}
-            onClick={() => handleAspectChange(preset.value)}
-            className={[
-              'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
-              aspect === preset.value
-                ? 'border-[#18E299] text-[#18E299]'
-                : 'border-white/20 text-white/60',
-            ].join(' ')}
-          >
-            {preset.label}
-          </button>
-        ))}
+        {!isCustom ? (
+          <>
+            {RATIO_PRESETS.map((preset) => (
+              <button
+                key={preset.label}
+                onClick={() => handleAspectChange(preset.value)}
+                className={[
+                  'rounded-full border px-4 py-1.5 text-sm font-medium transition-colors',
+                  aspect === preset.value
+                    ? 'border-[#18E299] text-[#18E299]'
+                    : 'border-white/20 text-white/60',
+                ].join(' ')}
+              >
+                {preset.label}
+              </button>
+            ))}
+            <button
+              onClick={() => setIsCustom(true)}
+              className="rounded-full border border-white/20 px-4 py-1.5 text-sm font-medium text-white/60 transition-colors"
+            >
+              Custom
+            </button>
+          </>
+        ) : (
+          <>
+            <input
+              type="number"
+              min="0.1"
+              step="any"
+              value={customW}
+              onChange={(e) => setCustomW(e.target.value)}
+              placeholder="W"
+              className="w-14 rounded-full border border-white/20 bg-transparent py-1.5 text-center text-sm text-white"
+            />
+            <span className="flex items-center text-sm text-white/60">:</span>
+            <input
+              type="number"
+              min="0.1"
+              step="any"
+              value={customH}
+              onChange={(e) => setCustomH(e.target.value)}
+              placeholder="H"
+              className="w-14 rounded-full border border-white/20 bg-transparent py-1.5 text-center text-sm text-white"
+            />
+            <button
+              onClick={handleCustomApply}
+              disabled={isApplyDisabled}
+              className="rounded-full bg-[#18E299] px-4 py-1.5 text-sm font-medium text-[#0d0d0d] transition-colors disabled:opacity-40"
+            >
+              ✓
+            </button>
+          </>
+        )}
       </div>
 
       {/* Action buttons */}

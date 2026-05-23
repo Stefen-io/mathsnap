@@ -7,6 +7,12 @@ import type { Area } from 'react-easy-crop'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { getCroppedImg } from '@/lib/getCroppedImg'
 
+const RATIO_PRESETS = [
+  { label: '4:3', value: 4 / 3 },
+  { label: '16:9', value: 16 / 9 },
+  { label: '1:1', value: 1 },
+] as const
+
 export default function CropPage() {
   const router = useRouter()
   const { capturedBlob, setCroppedBlob } = useCaptureContext()
@@ -49,12 +55,6 @@ export default function CropPage() {
       URL.revokeObjectURL(freshUrl)
     }
   }
-
-  const RATIO_PRESETS = [
-    { label: '4:3', value: 4 / 3 },
-    { label: '16:9', value: 16 / 9 },
-    { label: '1:1', value: 1 },
-  ] as const
 
   if (!capturedBlob || !imageUrl) return null
 

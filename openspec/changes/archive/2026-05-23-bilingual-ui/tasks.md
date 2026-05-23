@@ -58,4 +58,4 @@
 - [x] 14.1 Run `pnpm typecheck` — zero errors (validates `satisfies` constraint catches any missing keys).
 - [x] 14.2 Run `pnpm test` — all tests pass including the new `i18n.test.ts` key-parity test.
 - [x] 14.3 Run `pnpm lint` — zero new lint errors.
-- [ ] 14.4 Manual smoke test: toggle English in Settings → verify BottomNav, HomePage, History, Bookmarks, Solve all display English. Toggle back to Vietnamese → all return to Vietnamese.
+- [x] 14.4 Manual smoke test: toggle English in Settings → verify BottomNav, HomePage, History, Bookmarks, Solve all display English. Toggle back to Vietnamese → all return to Vietnamese.

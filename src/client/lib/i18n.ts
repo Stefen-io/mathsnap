@@ -75,6 +75,9 @@ const vi = {
   solveAriaBookmark: 'Đánh dấu',
   solveNewProblem: 'Bài mới',
   solveToastError: 'Không thể tạo lời giải.',
+  // Rate limiting
+  rateLimitBurst: 'Bạn đang gửi quá nhanh. Vui lòng đợi 1 phút.',
+  rateLimitDaily: 'Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai.',
   // Onboarding
   onboardingSkip: 'Bỏ qua',
   onboardingNext: 'Tiếp',
@@ -163,6 +166,9 @@ const en: typeof vi = {
   solveAriaBookmark: 'Bookmark',
   solveNewProblem: 'New problem',
   solveToastError: 'Unable to generate solution.',
+  // Rate limiting
+  rateLimitBurst: 'You are sending too fast. Please wait 1 minute.',
+  rateLimitDaily: 'You have reached today\'s limit. Please try again tomorrow.',
   // Onboarding
   onboardingSkip: 'Skip',
   onboardingNext: 'Next',

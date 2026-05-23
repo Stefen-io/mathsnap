@@ -1,6 +1,7 @@
 import type { HistoryItem, HistoryListResponse } from '@/types/history'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
+const REQUEST_TIMEOUT = 10000 * 2
 
 export class ApiError extends Error {
   readonly code: string
@@ -41,7 +42,7 @@ export async function postOcr(blob: Blob, deviceId: string): Promise<OcrResponse
   const form = new FormData()
   form.append('image', blob, 'image.jpg')
   const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 10000)
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT)
   let res: Response
   try {
     res = await fetch(`${BASE}/api/ocr`, {

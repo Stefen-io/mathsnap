@@ -13,6 +13,7 @@ export default function CropPage() {
   const [crop, setCrop] = useState({ x: 0, y: 0 })
   const [zoom, setZoom] = useState(1)
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+  const [aspect, setAspect] = useState<number>(4 / 3)
 
   const imageUrl = useMemo(
     () => (capturedBlob ? URL.createObjectURL(capturedBlob) : null),
@@ -30,6 +31,12 @@ export default function CropPage() {
   const onCropComplete = useCallback((_: Area, pixels: Area) => {
     setCroppedAreaPixels(pixels)
   }, [])
+
+  function handleAspectChange(newAspect: number) {
+    setAspect(newAspect)
+    setCrop({ x: 0, y: 0 })
+    setZoom(1)
+  }
 
   async function handleConfirm() {
     if (!capturedBlob || !croppedAreaPixels) return
@@ -53,7 +60,7 @@ export default function CropPage() {
           image={imageUrl}
           crop={crop}
           zoom={zoom}
-          aspect={4 / 3}
+          aspect={aspect}
           minZoom={1}
           maxZoom={3}
           onCropChange={setCrop}

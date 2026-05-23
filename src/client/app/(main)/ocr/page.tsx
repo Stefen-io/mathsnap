@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postOcr, ApiError } from '@/lib/api'
+import { t } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 
 type OcrState = 'ocr-loading' | 'confirm' | 'error'
@@ -31,6 +33,10 @@ export default function OcrPage() {
 
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
 
+  const { lang } = useLanguage()
+  const langRef = useRef(lang)
+  langRef.current = lang
+
   useEffect(() => {
     if (!croppedBlob) { setObjectUrl(null); return }
     const url = URL.createObjectURL(croppedBlob)
@@ -44,9 +50,10 @@ export default function OcrPage() {
     setErrorInfo(null)
     postOcr(croppedBlob, deviceId)
       .then(res => {
+        const currentLang = langRef.current
         const formula = res.formulas[0]
         if (!formula) {
-          setErrorInfo({ code: 'OCR_NO_FORMULA', message: 'Không nhận diện được công thức trong ảnh.', retryable: false })
+          setErrorInfo({ code: 'OCR_NO_FORMULA', message: t[currentLang].ocrErrorNoFormula, retryable: false })
           setState('error')
           return
         }
@@ -55,9 +62,16 @@ export default function OcrPage() {
         setState('confirm')
       })
       .catch((err: unknown) => {
+        const currentLang = langRef.current
         const info: OcrErrorInfo = err instanceof ApiError
-          ? { code: err.code, message: err.message, retryable: err.retryable }
-          : { code: 'UNKNOWN', message: 'Có lỗi xảy ra. Vui lòng thử lại.', retryable: false }
+          ? {
+              code: err.code,
+              message: err.code === 'OCR_TIMEOUT' ? t[currentLang].ocrErrorTimeout
+                      : err.code === 'RATE_LIMITED' ? (err.retryable ? t[currentLang].rateLimitBurst : t[currentLang].rateLimitDaily)
+                      : err.message,
+              retryable: err.retryable,
+            }
+          : { code: 'UNKNOWN', message: t[currentLang].ocrErrorGeneric, retryable: false }
         setErrorInfo(info)
         setState('error')
       })

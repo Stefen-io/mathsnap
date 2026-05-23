@@ -11,6 +11,9 @@ vi.mock('@/contexts/CaptureContext', () => ({
 vi.mock('@/hooks/useDeviceId', () => ({
   useDeviceId: vi.fn(),
 }))
+vi.mock('@/contexts/LanguageContext', () => ({
+  useLanguage: vi.fn(() => ({ lang: 'vi', setLang: vi.fn() })),
+}))
 vi.mock('@/lib/api', () => ({
   postOcr: vi.fn(() => new Promise(() => {})),
   ApiError: class ApiError extends Error {
@@ -26,6 +29,7 @@ vi.mock('@/lib/api', () => ({
 
 import OcrPage from './page'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postOcr, ApiError } from '@/lib/api'
 
@@ -71,6 +75,25 @@ describe('OcrPage', () => {
     render(<OcrPage />)
     expect(fetchSpy).not.toHaveBeenCalled()
     fetchSpy.mockRestore()
+  })
+
+  it('calls postOcr exactly once even when lang changes after mount', async () => {
+    // Simulate LanguageContext: first render 'vi', subsequent renders 'en'.
+    // If lang were in runOcr deps, this would create a new runOcr reference,
+    // re-fire the triggering effect, and issue a second postOcr call.
+    vi.mocked(useLanguage)
+      .mockReturnValueOnce({ lang: 'vi', setLang: vi.fn() })
+      .mockReturnValueOnce({ lang: 'en', setLang: vi.fn() })
+    vi.mocked(postOcr).mockResolvedValueOnce({ formulas: [{ latex: 'x^2', confidence: 0.9 }] })
+    vi.mocked(useCaptureContext).mockReturnValue({
+      ...baseContext,
+      croppedBlob: new Blob(['crop'], { type: 'image/jpeg' }),
+    })
+    vi.mocked(useDeviceId).mockReturnValue('test-device')
+    const { rerender } = render(<OcrPage />)
+    rerender(<OcrPage />)
+    await screen.findByText('x^2', { exact: false }).catch(() => null)
+    expect(postOcr).toHaveBeenCalledTimes(1)
   })
 
   it('shows Thử lại button for RATE_LIMITED burst (retryable)', async () => {

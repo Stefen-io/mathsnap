@@ -1,7 +1,7 @@
 import type { HistoryItem, HistoryListResponse } from '@/types/history'
 
 const BASE = process.env.NEXT_PUBLIC_API_URL ?? ''
-const REQUEST_TIMEOUT = 10000 * 2
+const REQUEST_TIMEOUT = 10000 * 6
 
 export class ApiError extends Error {
   readonly code: string

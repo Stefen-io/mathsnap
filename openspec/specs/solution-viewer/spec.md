@@ -3,16 +3,16 @@
 ## Purpose
 
 Defines the solve page (`app/solve/page.tsx`) — a flat Client Component route outside the `(main)` layout. Covers the guard on `ocrLatex`, the `POST /api/solve` call, loading skeleton, the step accordion UI with answer highlighting, bottom action bar, and error handling with optional retry.
-
 ## Requirements
-
 ### Requirement: Solve page guards on ocrLatex and fires POST /api/solve on mount
 
 The system SHALL provide `app/solve/page.tsx` as a flat Client Component route
 outside the `(main)` layout. On mount it MUST read `ocrLatex` from `CaptureContext`;
 if `null`, it MUST call `router.replace('/camera')`. Once `deviceId` from
-`useDeviceId` is non-null, it MUST call `postSolve(ocrLatex, deviceId)` and enter a
-`loading` state.
+`useDeviceId` is non-null, it MUST call `postSolve(ocrLatex, deviceId)` exactly once
+per component mount — including when React StrictMode fires the triggering effect
+twice in development. Subsequent effect re-runs due to StrictMode MUST NOT issue a
+second request.
 
 #### Scenario: Null ocrLatex redirects to camera
 - **WHEN** `/solve` is mounted with `CaptureContext.ocrLatex === null`
@@ -22,7 +22,9 @@ if `null`, it MUST call `router.replace('/camera')`. Once `deviceId` from
 - **WHEN** `deviceId` becomes non-null and `ocrLatex` is set
 - **THEN** `postSolve(ocrLatex, deviceId)` is called exactly once
 
----
+#### Scenario: StrictMode double-effect does not produce a second request
+- **WHEN** React StrictMode fires the mount effect twice in development
+- **THEN** `postSolve` is invoked only once (no concurrent duplicate request)
 
 ### Requirement: S-06 loading state renders skeleton and animated label
 
@@ -141,3 +143,4 @@ via `toast.error(error.message)` (Sonner). It MUST render an inline error card. 
 #### Scenario: No retry button for non-retryable errors
 - **WHEN** the error state is active and `error.retryable === false`
 - **THEN** no "Thử lại" button is rendered
+

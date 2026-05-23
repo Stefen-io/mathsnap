@@ -33,6 +33,9 @@ vi.mock('@/components/KaTeXRenderer', () => ({
   default: ({ latex }: { latex: string }) => <span data-testid="katex">{latex}</span>,
 }))
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
+vi.mock('@/contexts/LanguageContext', () => ({
+  useLanguage: vi.fn(() => ({ lang: 'vi', setLang: vi.fn() })),
+}))
 
 import SolvePage from './page'
 import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
@@ -96,6 +99,19 @@ describe('SolvePage', () => {
     expect(cards).toHaveLength(2)
     cards.forEach(c => expect(c.getAttribute('data-open')).toBe('true'))
   })
+
+  it('calls postSolve exactly once on mount (regression guard against solveStartedRef removal)', async () => {
+    vi.mocked(postSolve).mockResolvedValueOnce(mockItem)
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+
+    const { rerender } = render(<SolvePage />)
+    // Re-render with identical props to confirm a plain re-render does not re-fire the effect
+    rerender(<SolvePage />)
+
+    await screen.findByTestId('step-1')
+    expect(postSolve).toHaveBeenCalledTimes(1)
+  })
 })
 
 describe('SolvePage error dispatch', () => {
@@ -127,12 +143,12 @@ describe('SolvePage error dispatch', () => {
 
   it('shows no button for RATE_LIMITED daily (retryable=false)', async () => {
     vi.mocked(postSolve).mockRejectedValue(
-      new ApiError('RATE_LIMITED', 'Bạn đã dùng hết lượt hôm nay.', false)
+      new ApiError('RATE_LIMITED', 'You have reached today\'s limit. Please try again tomorrow.', false)
     )
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
     vi.mocked(useDeviceId).mockReturnValue('test-device')
     render(<SolvePage />)
-    expect(await screen.findByText('Bạn đã dùng hết lượt hôm nay.')).toBeTruthy()
+    expect(await screen.findByText('Bạn đã dùng hết lượt hôm nay. Vui lòng thử lại vào ngày mai.')).toBeTruthy()
     expect(screen.queryByRole('button', { name: 'Thử lại' })).toBeNull()
     expect(screen.queryByRole('button', { name: 'Nhập bài toán khác' })).toBeNull()
   })

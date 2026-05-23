@@ -1,12 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Bookmark } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
+import { t, type Lang } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import { StepCard } from '@/components/StepCard'
 import type { SolutionStep } from '@/types/history'
@@ -25,7 +27,9 @@ function Skeleton({ className = '' }: { className?: string }) {
 export default function SolvePage() {
   const router = useRouter()
   const { ocrLatex, setSolveResult, reset } = useCaptureContext()
+  const { lang } = useLanguage()
   const deviceId = useDeviceId()
+  const solveStartedRef = useRef(false)
   const [pageState, setPageState] = useState<PageState>('loading')
   const [steps, setSteps] = useState<SolutionStep[]>([])
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
@@ -48,7 +52,8 @@ export default function SolvePage() {
     setError(null)
     setErrorCode(null)
     try {
-      const language = (localStorage.getItem('mathsnap_language') as 'vi' | 'en') ?? 'vi'
+      const stored = localStorage.getItem('mathsnap_language')
+      const language: Lang = stored === 'en' ? 'en' : 'vi'
       const result = await postSolve(ocrLatex, deviceId, language)
       setSolveResult(result)
       setSteps(result.solutionSteps)
@@ -58,19 +63,27 @@ export default function SolvePage() {
       setPageState('success')
     } catch (err) {
       const code = err instanceof ApiError ? err.code : 'UNKNOWN'
-      const info: ErrorInfo = err instanceof ApiError
-        ? { message: err.message, retryable: err.retryable }
-        : { message: 'Không thể tạo lời giải. Vui lòng thử lại.', retryable: true }
+      const localizedMessage: string = err instanceof ApiError
+        ? (err.code === 'RATE_LIMITED'
+            ? (err.retryable ? t[lang].rateLimitBurst : t[lang].rateLimitDaily)
+            : err.message)
+        : t[lang].solveErrorGeneric
       setErrorCode(code)
-      setError(info)
+      setError({
+        message: localizedMessage,
+        retryable: err instanceof ApiError ? err.retryable : true,
+      })
       setPageState('error')
-      toast.error(err instanceof ApiError ? err.message : 'Không thể tạo lời giải.')
+      toast.error(err instanceof ApiError ? localizedMessage : t[lang].solveToastError)
     }
   }
 
   useEffect(() => {
     if (!ocrLatex) { router.replace('/camera'); return }
     if (!deviceId) return
+    // No cleanup reset: intentional. Adding one would let StrictMode's remount bypass this guard.
+    if (solveStartedRef.current) return
+    solveStartedRef.current = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void runSolve()
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +97,7 @@ export default function SolvePage() {
           <Skeleton className="h-16 w-[70%]" />
           <Skeleton className="h-16 w-[50%]" />
           <p className="mt-4 font-mono text-[12px] uppercase tracking-[0.6px] text-[#888]">
-            Đang phân tích bài toán<span className="animate-pulse">_</span>
+            {t[lang].solveLoading}<span className="animate-pulse">_</span>
           </p>
         </div>
       )}
@@ -99,14 +112,14 @@ export default function SolvePage() {
                 onClick={() => { reset(); router.push('/camera') }}
                 className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
               >
-                Nhập bài toán khác
+                {t[lang].solveOtherProblem}
               </button>
             ) : error.retryable ? (
               <button
                 onClick={runSolve}
                 className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
               >
-                Thử lại
+                {t[lang].solveRetry}
               </button>
             ) : null}
           </div>
@@ -119,11 +132,11 @@ export default function SolvePage() {
             <button
               onClick={() => router.back()}
               className="flex size-8 items-center justify-center rounded-full text-[#888] hover:bg-[#fafafa]"
-              aria-label="Quay lại"
+              aria-label={t[lang].solveAriaBack}
             >
               <ChevronLeft className="size-5" aria-hidden="true" />
             </button>
-            <h1 className="text-[16px] font-medium text-[#0d0d0d]">Lời giải</h1>
+            <h1 className="text-[16px] font-medium text-[#0d0d0d]">{t[lang].solveTitle}</h1>
           </header>
 
           <div className="border-b border-black/5 bg-[#fafafa] px-4 py-3">
@@ -137,6 +150,7 @@ export default function SolvePage() {
                 step={step}
                 isOpen={openSteps.has(step.index)}
                 onToggle={() => toggleStep(step.index)}
+                lang={lang}
               />
             ))}
           </main>
@@ -158,7 +172,7 @@ export default function SolvePage() {
                   ? 'bg-[#d4fae8] text-[#0fa76e]'
                   : 'border border-black/5 text-[#0d0d0d]'
               }`}
-              aria-label="Đánh dấu"
+              aria-label={t[lang].solveAriaBookmark}
             >
               <Bookmark
                 className="size-5"
@@ -171,7 +185,7 @@ export default function SolvePage() {
               onClick={() => { reset(); router.push('/') }}
               className="flex h-12 flex-1 items-center justify-center rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              Bài mới
+              {t[lang].solveNewProblem}
             </button>
           </div>
         </>

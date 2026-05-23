@@ -33,6 +33,9 @@ vi.mock('@/components/KaTeXRenderer', () => ({
   default: ({ latex }: { latex: string }) => <span data-testid="katex">{latex}</span>,
 }))
 vi.mock('sonner', () => ({ toast: { error: vi.fn() } }))
+vi.mock('@/contexts/LanguageContext', () => ({
+  useLanguage: vi.fn(() => ({ lang: 'vi', setLang: vi.fn() })),
+}))
 
 import SolvePage from './page'
 import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
@@ -95,6 +98,19 @@ describe('SolvePage', () => {
     const cards = await screen.findAllByTestId(/^step-/)
     expect(cards).toHaveLength(2)
     cards.forEach(c => expect(c.getAttribute('data-open')).toBe('true'))
+  })
+
+  it('calls postSolve exactly once on mount (regression guard against solveStartedRef removal)', async () => {
+    vi.mocked(postSolve).mockResolvedValueOnce(mockItem)
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+
+    const { rerender } = render(<SolvePage />)
+    // Re-render with identical props to confirm a plain re-render does not re-fire the effect
+    rerender(<SolvePage />)
+
+    await screen.findByTestId('step-1')
+    expect(postSolve).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight } from 'lucide-react'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
-import { t } from '@/lib/i18n'
 import { postOcr, ApiError } from '@/lib/api'
+import { t } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 
 type OcrState = 'ocr-loading' | 'confirm' | 'error'
@@ -31,8 +31,11 @@ export default function OcrPage() {
   const [confidence, setConfidence] = useState(1)
   const [errorInfo, setErrorInfo] = useState<OcrErrorInfo | null>(null)
 
-  const { lang } = useLanguage()
   const [objectUrl, setObjectUrl] = useState<string | null>(null)
+
+  const { lang } = useLanguage()
+  const langRef = useRef(lang)
+  langRef.current = lang
 
   useEffect(() => {
     if (!croppedBlob) { setObjectUrl(null); return }
@@ -47,9 +50,10 @@ export default function OcrPage() {
     setErrorInfo(null)
     postOcr(croppedBlob, deviceId)
       .then(res => {
+        const currentLang = langRef.current
         const formula = res.formulas[0]
         if (!formula) {
-          setErrorInfo({ code: 'OCR_NO_FORMULA', message: t[lang].ocrErrorNoFormula, retryable: false })
+          setErrorInfo({ code: 'OCR_NO_FORMULA', message: t[currentLang].ocrErrorNoFormula, retryable: false })
           setState('error')
           return
         }
@@ -58,19 +62,20 @@ export default function OcrPage() {
         setState('confirm')
       })
       .catch((err: unknown) => {
+        const currentLang = langRef.current
         const info: OcrErrorInfo = err instanceof ApiError
           ? {
               code: err.code,
-              message: err.code === 'OCR_TIMEOUT' ? t[lang].ocrErrorTimeout
-                      : err.code === 'RATE_LIMITED' ? (err.retryable ? t[lang].rateLimitBurst : t[lang].rateLimitDaily)
+              message: err.code === 'OCR_TIMEOUT' ? t[currentLang].ocrErrorTimeout
+                      : err.code === 'RATE_LIMITED' ? (err.retryable ? t[currentLang].rateLimitBurst : t[currentLang].rateLimitDaily)
                       : err.message,
               retryable: err.retryable,
             }
-          : { code: 'UNKNOWN', message: t[lang].ocrErrorGeneric, retryable: false }
+          : { code: 'UNKNOWN', message: t[currentLang].ocrErrorGeneric, retryable: false }
         setErrorInfo(info)
         setState('error')
       })
-  }, [croppedBlob, deviceId, lang])
+  }, [croppedBlob, deviceId])
 
   useEffect(() => {
     if (!croppedBlob) { router.push('/camera'); return }
@@ -85,7 +90,7 @@ export default function OcrPage() {
     <div className="flex min-h-dvh flex-col px-6 pt-8 pb-[100px]">
       {state === 'ocr-loading' && (
         <div className="flex flex-col gap-4">
-          <p className="text-center text-xs text-gray-400">{t[lang].ocrLoading}</p>
+          <p className="text-center text-xs text-gray-400">Đang nhận dạng công thức...</p>
           <Skeleton className="h-[100px] w-full rounded-[16px]" />
           <div className="rounded-[16px] border border-black/5 p-5">
             <Skeleton className="mb-2 h-3 w-16" />
@@ -109,13 +114,13 @@ export default function OcrPage() {
                 onClick={runOcr}
                 className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
               >
-                {t[lang].ocrRetry}
+                Thử lại
               </button>
               <button
                 onClick={() => router.push('/manual')}
                 className="h-12 w-full rounded-full border border-black/8 text-[15px] font-medium text-[#0d0d0d]"
               >
-                {t[lang].ocrManual}
+                Nhập thủ công
               </button>
             </div>
           ) : errorInfo.retryable ? (
@@ -123,14 +128,14 @@ export default function OcrPage() {
               onClick={runOcr}
               className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              {t[lang].ocrRetry}
+              Thử lại
             </button>
           ) : (
             <button
               onClick={() => { reset(); router.push('/camera') }}
               className="h-12 w-full rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white"
             >
-              {t[lang].ocrRecapture}
+              Chụp lại
             </button>
           )}
         </div>
@@ -142,7 +147,7 @@ export default function OcrPage() {
             {objectUrl && (
               <img
                 src={objectUrl}
-                alt={t[lang].ocrImageAlt}
+                alt="Ảnh đã chụp"
                 className="mb-4 h-[100px] w-full rounded-[12px] object-cover"
               />
             )}
@@ -150,13 +155,13 @@ export default function OcrPage() {
               <KaTeXRenderer latex={editedLatex} />
             </div>
             <p className="mt-2 text-center text-[13px] text-[#888]">
-              {t[lang].ocrCheckFormula}
+              Kiểm tra công thức đã chính xác chưa?
             </p>
           </div>
 
           {confidence < 0.6 && (
             <div className="mb-3 rounded-full border border-amber-300 px-3 py-1 text-center text-[13px] text-amber-700">
-              {t[lang].ocrLowConfidence}
+              Độ chính xác thấp — kiểm tra lại
             </div>
           )}
 
@@ -171,14 +176,14 @@ export default function OcrPage() {
               onClick={() => { reset(); router.push('/camera') }}
               className="shrink-0 text-[15px] text-[#888] underline"
             >
-              {t[lang].ocrRecapture}
+              Chụp lại
             </button>
             <button
               disabled={!editedLatex.trim()}
               onClick={() => { setOcrLatex(editedLatex); router.push('/solve') }}
               className="flex h-[52px] flex-1 items-center justify-center gap-2 rounded-full bg-[#0d0d0d] text-[15px] font-medium text-white disabled:opacity-40"
             >
-              {t[lang].ocrSolve}
+              Giải bài này
               <ArrowRight className="size-4" aria-hidden="true" />
             </button>
           </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Bookmark } from 'lucide-react'
 import { toast } from 'sonner'
@@ -29,6 +29,7 @@ export default function SolvePage() {
   const { ocrLatex, setSolveResult, reset } = useCaptureContext()
   const { lang } = useLanguage()
   const deviceId = useDeviceId()
+  const solveStartedRef = useRef(false)
   const [pageState, setPageState] = useState<PageState>('loading')
   const [steps, setSteps] = useState<SolutionStep[]>([])
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
@@ -80,6 +81,9 @@ export default function SolvePage() {
   useEffect(() => {
     if (!ocrLatex) { router.replace('/camera'); return }
     if (!deviceId) return
+    // No cleanup reset: intentional. Adding one would let StrictMode's remount bypass this guard.
+    if (solveStartedRef.current) return
+    solveStartedRef.current = true
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void runSolve()
   // eslint-disable-next-line react-hooks/exhaustive-deps

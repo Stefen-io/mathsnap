@@ -9,6 +9,8 @@ from app.schemas.solution import Solution
 
 logger = logging.getLogger(__name__)
 
+REQUEST_TIMEOUT = 60 * 3
+
 LANGUAGE_NAMES = {"vi": "Vietnamese", "en": "English"}
 
 SYSTEM_PROMPT = """You are a math tutor. Solve the given math problem step by step.
@@ -30,8 +32,8 @@ _solver_chain = None
 def _build_chain():
     llm = ChatOpenAI(
         model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-        timeout=60,				# ← chờ tối đa 60 giây
-        max_retries=1,		# ← retry 1 lần nếu lỗi
+        timeout=REQUEST_TIMEOUT,	# ← chờ tối đa
+        max_retries=0,						# ← retry nếu lỗi
         temperature=0,
     ).with_structured_output(Solution, method="json_mode")
     return _prompt | llm

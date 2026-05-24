@@ -24,11 +24,6 @@ const vi = {
   bookmarksTitle: 'Bookmark',
   bookmarksEmpty: 'Chưa có bài nào được lưu',
   bookmarksAriaUnsave: 'Bỏ lưu',
-  // History detail
-  detailTitle: 'Lời giải',
-  detailAriaBack: 'Quay lại',
-  detailAriaBookmark: 'Đánh dấu',
-  detailNewProblem: 'Bài mới',
   // Manual input
   manualTitle: 'Nhập công thức',
   manualAriaBack: 'Quay lại',
@@ -115,11 +110,6 @@ const en: typeof vi = {
   bookmarksTitle: 'Bookmarks',
   bookmarksEmpty: 'No bookmarks yet',
   bookmarksAriaUnsave: 'Remove bookmark',
-  // History detail
-  detailTitle: 'Solution',
-  detailAriaBack: 'Go back',
-  detailAriaBookmark: 'Bookmark',
-  detailNewProblem: 'New problem',
   // Manual input
   manualTitle: 'Enter Formula',
   manualAriaBack: 'Go back',

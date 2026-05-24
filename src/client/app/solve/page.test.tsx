@@ -4,9 +4,11 @@ import { vi, describe, it, expect, beforeEach } from 'vitest'
 const mockReplace = vi.fn()
 const mockBack = vi.fn()
 const mockPush = vi.fn()
+let mockSearchParams = new URLSearchParams()
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ replace: mockReplace, back: mockBack, push: mockPush }),
+  useSearchParams: () => mockSearchParams,
 }))
 vi.mock('@/contexts/CaptureContext', () => ({
   useCaptureContext: vi.fn(),
@@ -16,6 +18,7 @@ vi.mock('@/hooks/useDeviceId', () => ({
 }))
 vi.mock('@/lib/api', () => ({
   postSolve: vi.fn(),
+  getHistoryItem: vi.fn(),
   toggleBookmark: vi.fn(),
   ApiError: class ApiError extends Error {
     code: string; retryable: boolean
@@ -38,7 +41,7 @@ vi.mock('@/contexts/LanguageContext', () => ({
 }))
 
 import SolvePage from './page'
-import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
+import { postSolve, getHistoryItem, toggleBookmark, ApiError } from '@/lib/api'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
 import type { HistoryItem } from '@/types/history'
@@ -62,7 +65,7 @@ const baseContext = {
 }
 
 describe('SolvePage', () => {
-  beforeEach(() => { vi.clearAllMocks() })
+  beforeEach(() => { vi.clearAllMocks(); mockSearchParams = new URLSearchParams() })
 
   it('redirects to /camera when ocrLatex is null', () => {
     vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, ocrLatex: null })
@@ -115,7 +118,7 @@ describe('SolvePage', () => {
 })
 
 describe('SolvePage error dispatch', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => { vi.clearAllMocks(); mockSearchParams = new URLSearchParams() })
 
   it('shows Thử lại for LLM_TIMEOUT (retryable)', async () => {
     vi.mocked(postSolve).mockRejectedValue(
@@ -155,7 +158,7 @@ describe('SolvePage error dispatch', () => {
 })
 
 describe('SolvePage bookmark button', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => { vi.clearAllMocks(); mockSearchParams = new URLSearchParams() })
 
   it('calls toggleBookmark(true) when bookmark button is tapped', async () => {
     vi.mocked(postSolve).mockResolvedValueOnce(mockItem)
@@ -171,5 +174,43 @@ describe('SolvePage bookmark button', () => {
     await waitFor(() => {
       expect(toggleBookmark).toHaveBeenCalledWith('item-123', 'device-456', true)
     })
+  })
+})
+
+describe('SolvePage VIEW mode', () => {
+  beforeEach(() => { vi.clearAllMocks(); mockSearchParams = new URLSearchParams() })
+
+  it('fetches by id, renders steps, and does not call postSolve or redirect to camera', async () => {
+    mockSearchParams = new URLSearchParams('id=item-123')
+    vi.mocked(getHistoryItem).mockResolvedValueOnce({ ...mockItem, latex: 'y^2' })
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, ocrLatex: null })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+
+    render(<SolvePage />)
+    expect(await screen.findByTestId('step-1')).toBeTruthy()
+    expect(getHistoryItem).toHaveBeenCalledWith('item-123', 'device-456')
+    expect(postSolve).not.toHaveBeenCalled()
+    expect(mockReplace).not.toHaveBeenCalledWith('/camera')
+  })
+
+  it('shows item.latex in the problem bar (not ocrLatex)', async () => {
+    mockSearchParams = new URLSearchParams('id=item-123')
+    vi.mocked(getHistoryItem).mockResolvedValueOnce({ ...mockItem, latex: 'y^2' })
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, ocrLatex: null })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+
+    render(<SolvePage />)
+    await screen.findByTestId('step-1')
+    expect(screen.getByTestId('katex').textContent).toBe('y^2')
+  })
+
+  it('redirects to /history on ApiError', async () => {
+    mockSearchParams = new URLSearchParams('id=item-123')
+    vi.mocked(getHistoryItem).mockRejectedValueOnce(new ApiError('HISTORY_NOT_FOUND', 'not found', false))
+    vi.mocked(useCaptureContext).mockReturnValue({ ...baseContext, ocrLatex: null })
+    vi.mocked(useDeviceId).mockReturnValue('device-456')
+
+    render(<SolvePage />)
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/history'))
   })
 })

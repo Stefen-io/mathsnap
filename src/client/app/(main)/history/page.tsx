@@ -123,7 +123,7 @@ export default function HistoryPage() {
                   setTimeout(() => { draggingId.current = null }, 0)
                 }}
                 animate={{ x: swipedId === item.id ? -80 : 0 }}
-                onClick={() => { if (draggingId.current !== item.id) router.push(`/history/${item.id}`) }}
+                onClick={() => { if (draggingId.current !== item.id) router.push(`/solve?id=${item.id}`) }}
                 className="relative z-10 flex cursor-pointer items-center justify-between gap-4 rounded-[16px] border border-black/5 bg-white p-6 shadow-[0_2px_4px_rgba(0,0,0,0.03)] transition-colors active:bg-[#fafafa]"
               >
                 <div className="min-w-0 flex-1">

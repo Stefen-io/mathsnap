@@ -34,7 +34,7 @@ export function StepCard({ step, isOpen, onToggle, lang }: StepCardProps) {
         >
           {step.isAnswer ? t[lang].stepAnswer : `${t[lang].stepLabel} ${step.index}`}
         </span>
-        <span className="flex-1 text-[15px] font-medium text-[#0d0d0d]">{step.title}</span>
+        <span className="flex-1 text-[15px] font-medium text-[#0d0d0d] [@media(max-width:480px)]:text-[13px]">{step.title}</span>
         <svg
           className={`size-4 shrink-0 text-[#888] transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
           xmlns="http://www.w3.org/2000/svg"
@@ -59,16 +59,18 @@ export function StepCard({ step, isOpen, onToggle, lang }: StepCardProps) {
           >
             <div className="px-4 pb-4">
               <div className="mb-3 h-px w-full bg-black/5" />
-              <p className="text-[15px] leading-relaxed text-[#555]">{step.explanation}</p>
+              <p className="text-[15px] leading-relaxed text-[#555] [@media(max-width:480px)]:text-[13px]">{step.explanation}</p>
               {step.formula && (
-                <div className="mt-3 flex items-center justify-center rounded-[16px] bg-[#fafafa] p-3">
-                  {step.isAnswer ? (
-                    <span style={{ fontSize: '2.5rem' }} className="text-[#0d0d0d]">
+                <div className="mt-3 overflow-x-auto rounded-[16px] bg-[#fafafa] p-3">
+                  <div className="flex w-max min-w-full justify-center">
+                    {step.isAnswer ? (
+                      <span style={{ fontSize: 'clamp(1.5rem, 7vw, 2.5rem)' }} className="text-[#0d0d0d]">
+                        <KaTeXRenderer latex={step.formula} />
+                      </span>
+                    ) : (
                       <KaTeXRenderer latex={step.formula} />
-                    </span>
-                  ) : (
-                    <KaTeXRenderer latex={step.formula} />
-                  )}
+                    )}
+                  </div>
                 </div>
               )}
             </div>

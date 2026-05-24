@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, Bookmark } from 'lucide-react'
 import { toast } from 'sonner'
 import { useCaptureContext } from '@/contexts/CaptureContext'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { useDeviceId } from '@/hooks/useDeviceId'
-import { postSolve, toggleBookmark, ApiError } from '@/lib/api'
+import { postSolve, getHistoryItem, toggleBookmark, ApiError } from '@/lib/api'
 import { t, type Lang } from '@/lib/i18n'
 import KaTeXRenderer from '@/components/KaTeXRenderer'
 import { StepCard } from '@/components/StepCard'
@@ -24,12 +24,34 @@ function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-[16px] bg-gray-100 ${className}`} />
 }
 
+function LoadingFallback() {
+  return (
+    <div className="flex min-h-dvh flex-col bg-white">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-[70%]" />
+        <Skeleton className="h-16 w-[50%]" />
+      </div>
+    </div>
+  )
+}
+
 export default function SolvePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <SolvePageContent />
+    </Suspense>
+  )
+}
+
+function SolvePageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const viewId = searchParams.get('id')
   const { ocrLatex, setSolveResult, reset } = useCaptureContext()
   const { lang } = useLanguage()
   const deviceId = useDeviceId()
-  const solveStartedRef = useRef(false)
+  const startedRef = useRef(false)
   const [pageState, setPageState] = useState<PageState>('loading')
   const [steps, setSteps] = useState<SolutionStep[]>([])
   const [openSteps, setOpenSteps] = useState<Set<number>>(new Set<number>())
@@ -37,6 +59,9 @@ export default function SolvePage() {
   const [errorCode, setErrorCode] = useState<string | null>(null)
   const [historyItemId, setHistoryItemId] = useState<string | null>(null)
   const [isBookmarked, setIsBookmarked] = useState(false)
+  const [viewLatex, setViewLatex] = useState<string | null>(null)
+
+  const displayLatex = viewId ? viewLatex : ocrLatex
 
   function toggleStep(index: number) {
     setOpenSteps(prev => {
@@ -78,16 +103,40 @@ export default function SolvePage() {
     }
   }
 
+  async function loadHistoryItem(id: string, dev: string) {
+    setPageState('loading')
+    try {
+      const item = await getHistoryItem(id, dev)
+      setSolveResult(item)
+      setSteps(item.solutionSteps)
+      setHistoryItemId(item.id)
+      setIsBookmarked(item.isBookmarked)
+      setViewLatex(item.latex)
+      setOpenSteps(new Set(item.solutionSteps.map((s: SolutionStep) => s.index)))
+      setPageState('success')
+    } catch {
+      router.replace('/history')
+    }
+  }
+
   useEffect(() => {
+    // VIEW mode: fetch by id; never redirect to /camera, never call postSolve.
+    if (viewId) {
+      if (!deviceId) return
+      if (startedRef.current) return
+      startedRef.current = true
+      void loadHistoryItem(viewId, deviceId)
+      return
+    }
+    // SOLVE mode
     if (!ocrLatex) { router.replace('/camera'); return }
     if (!deviceId) return
     // No cleanup reset: intentional. Adding one would let StrictMode's remount bypass this guard.
-    if (solveStartedRef.current) return
-    solveStartedRef.current = true
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (startedRef.current) return
+    startedRef.current = true
     void runSolve()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ocrLatex, deviceId])
+  }, [ocrLatex, deviceId, viewId])
 
   return (
     <div className="flex min-h-dvh flex-col bg-white">
@@ -140,7 +189,7 @@ export default function SolvePage() {
           </header>
 
           <div className="border-b border-black/5 bg-[#fafafa] px-4 py-3">
-            {ocrLatex && <KaTeXRenderer latex={ocrLatex} />}
+            {displayLatex && <KaTeXRenderer latex={displayLatex} />}
           </div>
 
           <main className="flex-1 space-y-3 overflow-y-auto px-4 py-4 pb-[88px]">

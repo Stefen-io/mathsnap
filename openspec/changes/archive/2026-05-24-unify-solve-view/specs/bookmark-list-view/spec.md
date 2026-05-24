@@ -1,10 +1,4 @@
-# Spec: bookmark-list-view
-
-## Purpose
-
-TBD — Defines the Bookmarks page that lists bookmarked history items, supports swipe-to-remove-bookmark on mobile, and hover-reveal on desktop.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Bookmarks page fetches and displays bookmarked HistoryItems
 
@@ -25,17 +19,3 @@ solve page in view mode at `/solve?id={item.id}` (not to a standalone history de
 #### Scenario: Tapping an item navigates to the unified solve view
 - **WHEN** the user taps a bookmark item card (without an active swipe drag)
 - **THEN** the router navigates to `/solve?id={item.id}`
-
----
-
-### Requirement: Bookmarks list supports swipe-to-remove-bookmark on mobile
-
-Each bookmark item card MUST support swipe-left gesture (same pattern as history-list-view). Tapping the revealed action MUST call `toggleBookmark(id, deviceId, false)` and remove the item from the list (since it is no longer bookmarked). On desktop (≥ 1024px) a hover-reveal remove button MUST appear instead.
-
-#### Scenario: Swipe > 40px reveals remove action
-- **WHEN** user drags a bookmark card left more than 40px and releases
-- **THEN** the card snaps to `x: -80` revealing the removal button
-
-#### Scenario: Tapping remove calls toggleBookmark false and removes card
-- **WHEN** user taps the revealed action button
-- **THEN** `toggleBookmark(id, deviceId, false)` is called and the item exits the list
